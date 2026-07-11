@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { Mic, Sparkles, Check, Loader2, Download } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, CheckIcon, CpuChipIcon, LanguageIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -397,31 +397,31 @@ export function DownloadProgressStep() {
     modelSize: string,
     sizeUnit = 'MB'
   ) => (
-    <div className="border-y border-border bg-card px-5 py-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="py-5">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-[3px] bg-secondary">
+          <div className="grid size-9 place-items-center rounded-[9px] border border-border bg-card [&_svg]:size-[18px]">
             {icon}
           </div>
           <div>
-            <h3 className="font-medium">{title}</h3>
-            <p className="text-sm text-muted-foreground">{modelSize}</p>
+            <h3 className="text-[13px] font-medium">{title}</h3>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{modelSize}</p>
           </div>
         </div>
         <div>
           {state.status === 'waiting' && (
-            <span className="text-sm text-muted-foreground">Waiting...</span>
+            <span className="text-[11px] text-muted-foreground">Waiting</span>
           )}
           {state.status === 'downloading' && (
-            <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+            <ArrowPathIcon className="size-4 animate-spin text-muted-foreground" />
           )}
           {state.status === 'completed' && (
-            <div className="flex size-6 items-center justify-center rounded-[3px] bg-[hsl(var(--success)/0.1)]">
-              <Check className="h-4 w-4 text-success" />
+            <div className="grid size-5 place-items-center rounded-full bg-[hsl(var(--success)/0.1)]">
+              <CheckIcon className="size-3.5 text-success" />
             </div>
           )}
           {state.status === 'error' && (
-            <span className="text-sm text-destructive">Failed</span>
+            <span className="text-[11px] font-medium text-destructive">Failed</span>
           )}
         </div>
       </div>
@@ -429,13 +429,13 @@ export function DownloadProgressStep() {
       {/* Progress Bar */}
       {(state.status === 'downloading' || state.status === 'completed') && (
         <div className="space-y-2">
-          <div className="h-2 w-full overflow-hidden rounded-[3px] bg-secondary">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label={`${title} download progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(state.progress)}>
             <div
-              className="h-full bg-accent transition-all duration-300"
+              className="h-full rounded-full bg-accent transition-[width] duration-300"
               style={{ width: `${state.progress}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between font-mono text-[10px]">
             <span className="text-muted-foreground">
               {state.downloadedMb.toFixed(1)} {sizeUnit} / {state.totalMb.toFixed(1)} {sizeUnit}
             </span>
@@ -445,7 +445,7 @@ export function DownloadProgressStep() {
                   {state.speedMbps.toFixed(1)} {sizeUnit}/s
                 </span>
               )}
-              <span className="font-semibold text-foreground">
+              <span className="font-medium text-foreground">
                 {Math.round(state.progress)}%
               </span>
             </div>
@@ -454,18 +454,15 @@ export function DownloadProgressStep() {
       )}
 
       {state.status === 'error' && state.error && (
-        <div className="mt-2 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
-          <p className="text-sm font-medium text-destructive">Download Error</p>
-          <p className="mt-1 text-xs text-destructive">{state.error}</p>
+        <div className="mt-3 border-l-2 border-destructive pl-3">
+          <p className="text-[12px] font-medium text-destructive">Download couldn&apos;t finish</p>
+          <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{state.error}</p>
           {(title === 'Transcription Engine' || title === 'Summary Engine') && (
             <button
               onClick={title === 'Transcription Engine' ? handleRetryDownload : handleRetrySummaryDownload}
-              className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-[3px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-3 inline-flex h-8 items-center justify-center gap-2 rounded-md border border-input bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <ArrowPathIcon className="size-4" />
               Try Again
             </button>
           )}
@@ -481,19 +478,19 @@ export function DownloadProgressStep() {
       step={3}
       totalSteps={isMac ? 4 : 3}
     >
-      <div className="flex flex-col items-center space-y-6">
+      <div className="max-w-[680px]">
         {/* Download Cards */}
-        <div className="w-full max-w-lg space-y-4">
+        <div className="divide-y divide-border border-y border-border">
           {renderDownloadCard(
             'Transcription Engine',
-            <Mic className="h-5 w-5 text-muted-foreground" />,
+            <LanguageIcon className="text-muted-foreground" />,
             parakeetState,
             '~670 MB'
           )}
 
           {renderDownloadCard(
             'Summary Engine',
-            <Sparkles className="h-5 w-5 text-muted-foreground" />,
+            <CpuChipIcon className="text-muted-foreground" />,
             summaryState,
             getSummaryModelSizeLabel(selectedSummaryModel || recommendedSummaryModel),
             'MiB'
@@ -508,13 +505,13 @@ export function DownloadProgressStep() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="w-full max-w-lg rounded-[3px] border border-border bg-muted p-4 text-sm text-foreground"
+              className="mt-5 border-l-2 border-border pl-3 text-foreground"
             >
               <div className="flex items-start gap-3">
-                <Download className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                <ArrowDownTrayIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">You can continue while this finishes</p>
-                  <p className="mt-1 text-muted-foreground">
+                  <p className="text-[12px] font-medium">You can continue while this finishes</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
                     Download will continue in the background.
                   </p>
                 </div>
@@ -524,14 +521,14 @@ export function DownloadProgressStep() {
         </AnimatePresence>
 
         {/* Continue Button */}
-        <div className="w-full max-w-xs">
+        <div className="mt-8">
           <Button
             onClick={handleContinue}
             disabled={!parakeetDownloaded || isCompleting}
-            className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 min-w-[116px] disabled:cursor-not-allowed"
           >
             {(isCompleting || !parakeetDownloaded) ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <ArrowPathIcon className="size-4 animate-spin" />
             ) : (
               'Continue'
             )}

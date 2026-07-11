@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { ArrowPathIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { PermissionRowProps } from '@/types/onboarding';
@@ -18,62 +18,48 @@ export function PermissionRow({ icon, title, description, status, isPending = fa
   return (
     <div
       className={cn(
-        'flex items-center justify-between rounded-[3px] border px-6 py-5',
-        'transition-all duration-200',
-        isAuthorized ? 'border-success/30 bg-success/10' : isDenied ? 'border-destructive/30 bg-destructive/10' : 'border-border bg-card'
+        'grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-4 py-4',
+        isAuthorized ? 'text-success' : isDenied ? 'text-destructive' : 'text-foreground'
       )}
     >
-      {/* Left side: Icon + Info */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Icon */}
-        <div
-          className={cn(
-            'flex size-10 shrink-0 items-center justify-center rounded-full',
-            isAuthorized ? 'bg-success/10' : isDenied ? 'bg-destructive/10' : 'bg-muted'
-          )}
-        >
-          <div className={cn(isAuthorized ? 'text-success' : isDenied ? 'text-destructive' : 'text-muted-foreground')}>{icon}</div>
-        </div>
+      <div className={cn('grid size-9 place-items-center rounded-[9px] border bg-card', isAuthorized ? 'border-success/25' : isDenied ? 'border-destructive/25' : 'border-border')}>
+        <div className={cn('[&_svg]:size-[18px]', isAuthorized ? 'text-success' : isDenied ? 'text-destructive' : 'text-muted-foreground')}>{icon}</div>
+      </div>
 
-        {/* Title + Description */}
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-medium text-foreground">{title}</div>
-          <div className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <div className="truncate text-[13px] font-medium text-foreground">{title}</div>
+          <div className="mt-1 text-[11px] leading-4 text-muted-foreground">
             {isAuthorized ? (
-              <span className="flex items-center gap-1 text-success">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Access Granted
+              <span className="flex items-center gap-1.5 text-success">
+                <CheckCircleIcon className="size-3.5" />
+                Allowed
               </span>
             ) : isDenied ? (
-              <span className="flex items-center gap-1 text-destructive">
-                <XCircle className="w-3.5 h-3.5" />
-                Access Denied - Please grant in System Settings
+              <span className="flex items-center gap-1.5 text-destructive">
+                <ExclamationCircleIcon className="size-3.5" />
+                Needs attention in System Settings
               </span>
             ) : (
               <span>{description}</span>
             )}
           </div>
-        </div>
       </div>
 
-      {/* Right side: Action button or checkmark */}
-      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+      <div className="flex shrink-0 items-center gap-2">
         {!isAuthorized && (
           <Button
             variant={isDenied ? "destructive" : "outline"}
             size="sm"
             onClick={onAction}
             disabled={isChecking}
-            className="min-w-[100px]"
+            className="min-w-[96px]"
           >
-            {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isChecking && <ArrowPathIcon className="size-4 animate-spin" />}
             {getButtonText()}
           </Button>
         )}
         {isAuthorized && (
-          <div className="flex size-8 items-center justify-center rounded-full bg-success/10">
-            <CheckCircle2 className="h-4 w-4 text-success" />
-          </div>
+          <CheckCircleIcon className="size-5 text-success" />
         )}
       </div>
     </div>

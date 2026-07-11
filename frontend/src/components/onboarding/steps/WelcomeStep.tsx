@@ -1,6 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
-import { Lock, Sparkles, Cpu } from 'lucide-react';
+import { ArrowRightIcon, CpuChipIcon, LockClosedIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -10,16 +9,19 @@ export function WelcomeStep() {
 
   const features = [
     {
-      icon: Lock,
-      title: 'Meetings and recordings are stored on your device',
+      icon: LockClosedIcon,
+      title: 'Private on your Mac',
+      description: 'Recordings and transcripts remain on this device.',
     },
     {
-      icon: Sparkles,
-      title: 'Intelligent summaries & insights',
+      icon: SparklesIcon,
+      title: 'Recall what mattered',
+      description: 'Turn transcripts into clear summaries and searchable notes.',
     },
     {
-      icon: Cpu,
-      title: 'Local models work offline; remote AI providers are optional',
+      icon: CpuChipIcon,
+      title: 'Works offline',
+      description: 'Local models are included. Remote providers stay optional.',
     },
   ];
 
@@ -30,37 +32,33 @@ export function WelcomeStep() {
       step={1}
       hideProgress={true}
     >
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center gap-3">
-          <Image src="/logo-collapsed.png" alt="" width={36} height={36} priority />
-          <p className="app-eyebrow">Meetily Improved</p>
-        </div>
-
-        <div className="w-full max-w-2xl border-y border-border bg-card py-2">
+      <div className="flex max-w-[680px] flex-col">
+        <div className="divide-y divide-border border-y border-border">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="flex items-start gap-4 border-b border-border/70 px-2 py-4 last:border-b-0">
-                <div className="flex-shrink-0 pt-0.5">
-                  <div className="flex size-8 items-center justify-center rounded-[3px] bg-secondary">
-                    <Icon className="size-4 text-muted-foreground" />
-                  </div>
+              <div key={index} className="grid grid-cols-[36px_1fr] gap-4 py-4">
+                <div className="grid size-8 place-items-center rounded-[8px] border border-border bg-card shadow-[0_1px_1px_hsl(var(--shadow-color)/0.04)]">
+                  <Icon className="size-[17px] text-muted-foreground" />
                 </div>
-                <p className="text-sm leading-relaxed text-foreground">{feature.title}</p>
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">{feature.title}</p>
+                  <p className="mt-1 text-[12px] leading-5 text-muted-foreground">{feature.description}</p>
+                </div>
               </div>
             );
           })}
         </div>
 
         {/* CTA Section */}
-        <div className="w-full max-w-xs space-y-3">
+        <div className="mt-8 flex items-center gap-4">
           <Button
             onClick={goNext}
-            className="h-10 w-full"
+            className="h-9 px-4"
           >
-            Get Started
+            Continue <ArrowRightIcon className="size-4" />
           </Button>
-          <p className="text-center font-mono text-[0.6875rem] text-muted-foreground">Takes less than 3 minutes</p>
+          <p className="text-[11px] text-muted-foreground">About three minutes</p>
         </div>
       </div>
     </OnboardingContainer>

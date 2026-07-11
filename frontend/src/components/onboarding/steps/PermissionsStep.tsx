@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Mic, Volume2 } from 'lucide-react';
+import { MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { PermissionRow } from '../shared';
@@ -120,12 +120,12 @@ export function PermissionsStep() {
       showNavigation={allPermissionsGranted}
       canGoNext={allPermissionsGranted}
     >
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="max-w-[680px]">
         {/* Permission Rows */}
-        <div className="border-y border-border bg-card py-1">
+        <div className="divide-y divide-border border-y border-border">
           {/* Microphone */}
           <PermissionRow
-            icon={<Mic className="w-5 h-5" />}
+            icon={<MicrophoneIcon />}
             title="Microphone"
             description="Required to capture your voice during meetings"
             status={permissions.microphone}
@@ -135,7 +135,7 @@ export function PermissionsStep() {
 
           {/* System Audio */}
           <PermissionRow
-            icon={<Volume2 className="w-5 h-5" />}
+            icon={<SpeakerWaveIcon />}
             title="System Audio"
             description="Click Enable to grant Audio Capture permission"
             status={permissions.systemAudio}
@@ -145,20 +145,20 @@ export function PermissionsStep() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-3 pt-4">
-          <Button onClick={handleFinish} disabled={!allPermissionsGranted} className="h-11 w-full">
+        <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <Button onClick={handleFinish} disabled={!allPermissionsGranted} className="h-9">
             Finish Setup
           </Button>
 
           <button
             onClick={handleSkip}
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
           >
             I&apos;ll do this later
           </button>
 
           {!allPermissionsGranted && (
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="basis-full text-[11px] leading-5 text-muted-foreground">
               Recording won&apos;t work without permissions. You can grant them later in settings.
             </p>
           )}

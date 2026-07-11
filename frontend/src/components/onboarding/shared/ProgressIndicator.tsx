@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Lock, Download, CheckCircle2, BrainCircuit } from 'lucide-react';
+import { CheckIcon } from '@heroicons/react/20/solid';
 
 interface ProgressIndicatorProps {
   current: number;
@@ -7,55 +7,40 @@ interface ProgressIndicatorProps {
   onStepClick?: (step: number) => void;
 }
 
-const stepIcons = [
-  Lock,         // 1. Welcome
-  BrainCircuit, // 2. Setup Overview
-  Download,     // 3. Download Progress
-  // Step 4 (Permissions) doesn't need icon - auto-skipped on non-macOS
-];
-
 export function ProgressIndicator({ current, total, onStepClick }: ProgressIndicatorProps) {
   const visibleSteps = Array.from({ length: total }, (_, i) => i + 1);
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-center gap-2">
+    <nav aria-label="Setup progress">
+      <div className="flex items-center gap-2">
         {visibleSteps.map((step, index) => {
           const isActive = step === current;
           const isCompleted = step < current;
           const isClickable = isCompleted && onStepClick;
-          const StepIcon = stepIcons[step - 1] || CheckCircle2;
 
           return (
             <React.Fragment key={step}>
-              {/* Step Circle */}
               <button
                 onClick={() => isClickable && onStepClick(step)}
                 disabled={!isClickable}
-                className={`relative flex items-center justify-center transition-all duration-300 ${
-                  isCompleted
-                    ? 'h-7 w-7 rounded-full bg-success'
-                    : isActive
-                      ? 'h-8 w-8 rounded-full bg-accent'
-                      : 'h-6 w-6 rounded-full bg-muted'
-                } ${isClickable ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}`}
+                aria-label={`Setup step ${step}${isActive ? ', current' : isCompleted ? ', completed' : ''}`}
+                aria-current={isActive ? 'step' : undefined}
+                className={`grid size-6 place-items-center rounded-full border text-[10px] font-semibold transition-colors ${
+                  isCompleted ? 'border-success/35 bg-success/10 text-success' : isActive ? 'border-foreground bg-foreground text-background' : 'border-border bg-transparent text-muted-foreground'
+                } ${isClickable ? 'cursor-pointer hover:bg-secondary' : 'cursor-default'}`}
               >
                 {isCompleted ? (
-                  <Check className="h-4 w-4 text-accent-foreground" />
+                  <CheckIcon className="size-3.5" />
                 ) : (
-                  <StepIcon
-                    className={`transition-all duration-300 ${
-                      isActive ? 'h-4 w-4 text-accent-foreground' : 'h-3 w-3 text-muted-foreground'
-                    }`}
-                  />
+                  step
                 )}
               </button>
 
               {/* Connector Line */}
               {index < visibleSteps.length - 1 && (
                 <div
-                  className={`h-0.5 w-6 transition-all duration-300 ${
-                    isCompleted ? 'bg-success' : 'bg-muted'
+                  className={`h-px w-8 transition-colors ${
+                    isCompleted ? 'bg-success/50' : 'bg-border'
                   }`}
                 />
               )}
@@ -63,6 +48,6 @@ export function ProgressIndicator({ current, total, onStepClick }: ProgressIndic
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

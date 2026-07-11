@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Info } from 'lucide-react';
+import { ArrowRightIcon, CpuChipIcon, InformationCircleIcon, LanguageIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -28,12 +28,12 @@ export function SetupOverviewStep() {
 
   const steps = [
     {
-      number: 1,
+      icon: LanguageIcon,
       type: 'transcription',
       title: 'Download Transcription Engine',
     },
     {
-      number: 2,
+      icon: CpuChipIcon,
       type: 'summarization',
       title: 'Download Summarization Engine',
     },
@@ -50,26 +50,26 @@ export function SetupOverviewStep() {
       step={2}
       totalSteps={isMac ? 4 : 3}
     >
-      <div className="flex flex-col items-center space-y-10">
-        <div className="w-full max-w-2xl border-y border-border bg-card py-2">
+      <div className="max-w-[680px]">
+        <div className="divide-y divide-border border-y border-border">
           <div>
             {steps.map((step, idx) => {
               return (
                 <div
-                  key={step.number}
-                  className="flex items-start gap-4 border-b border-border/70 px-4 py-5 last:border-b-0"
+                  key={step.title}
+                  className="grid grid-cols-[36px_1fr_auto] items-center gap-4 py-4"
                 >
-                  <span className="grid size-7 shrink-0 place-items-center rounded-[3px] bg-secondary font-mono text-xs text-muted-foreground">{step.number}</span>
+                  <span className="grid size-8 place-items-center rounded-[8px] border border-border bg-card"><step.icon className="size-[17px] text-muted-foreground" /></span>
                   <div className="flex-1">
-                    <h3 className="flex items-center gap-2 font-medium tracking-[-0.02em]">
+                    <h3 className="flex items-center gap-2 text-[13px] font-medium tracking-[-0.01em]">
                         {step.title}
 
                         {step.type === "summarization" && (
                             <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                <button className="text-muted-foreground hover:text-foreground">
-                                    <Info className="w-4 h-4" />
+                                <button aria-label="About summary providers" className="text-muted-foreground hover:text-foreground">
+                                    <InformationCircleIcon className="size-4" />
                                 </button>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-xs text-sm">
@@ -81,6 +81,7 @@ export function SetupOverviewStep() {
                         )}
                         </h3>
                   </div>
+                  <span className="text-[11px] text-muted-foreground">Included</span>
                 </div>
               );
             })}
@@ -89,19 +90,19 @@ export function SetupOverviewStep() {
 
 
         {/* CTA Section */}
-        <div className="w-full max-w-xs space-y-4">
+        <div className="mt-8 flex items-center gap-4">
           <Button
             onClick={handleContinue}
-            className="h-11 w-full"
+            className="h-9"
           >
-            Let&apos;s Go
+            Download models <ArrowRightIcon className="size-4" />
           </Button>
-          <div className="text-center">
+          <div>
             <a
               href="https://github.com/henryvn27/meetily_improved/issues"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+              className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
             >
               Report issues on GitHub
             </a>
