@@ -22,3 +22,6 @@ export const nativeQaTheme = isNativeQaMode && (configuredTheme === 'light' || c
 
 const configuredRoute = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_ROUTE;
 export const nativeQaRoute = isNativeQaMode && configuredRoute === 'settings' ? '/settings' : null;
+
+const configuredOverlay = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_OVERLAY;
+export const openAnalyticsDetailsForNativeQa = isNativeQaMode && configuredOverlay === 'analytics-details';

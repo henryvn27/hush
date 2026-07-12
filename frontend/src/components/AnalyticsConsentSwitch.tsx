@@ -1,11 +1,17 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Info, Loader2, Copy, Check } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  CheckIcon,
+  ClipboardIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { AnalyticsContext } from './AnalyticsProvider';
 import { load } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
 import { Analytics } from '@/lib/analytics';
+import { openAnalyticsDetailsForNativeQa } from '@/lib/native-qa-mode';
 import AnalyticsDataModal from './AnalyticsDataModal';
 
 const ANALYTICS_DEFAULT_OFF_MIGRATION_KEY = 'analyticsDefaultOffMigrationV1';
@@ -13,7 +19,7 @@ const ANALYTICS_DEFAULT_OFF_MIGRATION_KEY = 'analyticsDefaultOffMigrationV1';
 export default function AnalyticsConsentSwitch() {
   const { setIsAnalyticsOptedIn, isAnalyticsOptedIn } = useContext(AnalyticsContext);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(openAnalyticsDetailsForNativeQa);
   const [userId, setUserId] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
 
@@ -172,7 +178,7 @@ export default function AnalyticsConsentSwitch() {
           </div>
           <div className="flex items-center gap-2 ml-4">
             {isProcessing && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <ArrowPathIcon className="size-4 animate-spin text-muted-foreground" aria-hidden="true" />
             )}
             <Switch
               checked={isAnalyticsOptedIn}
@@ -204,12 +210,12 @@ export default function AnalyticsConsentSwitch() {
                   >
                     {isCopied ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-success" />
-                        <span className="text-success">Copied!</span>
+                        <CheckIcon className="size-3.5 text-success" aria-hidden="true" />
+                        <span className="text-success">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" />
+                        <ClipboardIcon className="size-3.5" aria-hidden="true" />
                         <span>Copy</span>
                       </>
                     )}
@@ -221,7 +227,7 @@ export default function AnalyticsConsentSwitch() {
         )}
 
         <div className="flex items-start gap-2 border border-accent/30 bg-accent-soft p-2">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          <InformationCircleIcon className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
           <div className="text-xs text-foreground">
             <p className="mb-1">
               Meetings, transcripts, recordings, and local models stay on this device. Remote summary providers only receive data when you explicitly configure and use one.

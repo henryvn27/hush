@@ -1,7 +1,16 @@
 'use client';
 
-import React, { useEffect, useId } from 'react';
-import { CheckIcon, InformationCircleIcon, LockClosedIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import React from 'react';
+import { CheckIcon, InformationCircleIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface AnalyticsDataModalProps {
   isOpen: boolean;
@@ -10,39 +19,22 @@ interface AnalyticsDataModalProps {
 }
 
 export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }: AnalyticsDataModalProps) {
-  const titleId = useId();
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[10px] border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[min(90vh,760px)] max-w-2xl gap-0 overflow-hidden p-0 sm:rounded-[10px]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border p-6">
-          <div className="flex items-center gap-3">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-14">
+          <div className="flex items-start gap-3">
             <LockClosedIcon className="size-5 text-muted-foreground" />
-            <h2 id={titleId} className="app-display text-xl">What analytics collects</h2>
+            <div className="space-y-1">
+              <DialogTitle className="app-display text-xl">What analytics collects</DialogTitle>
+              <DialogDescription>Review the anonymous product data shared only when analytics is enabled.</DialogDescription>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close analytics details"
-            className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <XMarkIcon className="size-5" />
-          </button>
-        </div>
+        </DialogHeader>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="space-y-6 overflow-y-auto p-6">
           {/* Privacy Notice */}
           <div className="border border-success/30 bg-success/10 p-4">
             <div className="flex items-start gap-3">
@@ -61,10 +53,10 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             {/* Model Preferences */}
             <div className="border border-border bg-muted/30 p-4">
               <h4 className="mb-2 font-semibold text-foreground">1. Model Preferences</h4>
-              <ul className="ml-4 space-y-1 text-sm text-foreground">
-                <li>• Transcription model (e.g., &quot;Whisper large-v3&quot;, &quot;Parakeet&quot;)</li>
-                <li>• Summary model (e.g., &quot;Llama 3.2&quot;, &quot;Claude Sonnet&quot;)</li>
-                <li>• Model provider (e.g., &quot;Local&quot;, &quot;Ollama&quot;, &quot;OpenRouter&quot;)</li>
+              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
+                <li>Transcription model (e.g., &quot;Whisper large-v3&quot;, &quot;Parakeet&quot;)</li>
+                <li>Summary model (e.g., &quot;Llama 3.2&quot;, &quot;Claude Sonnet&quot;)</li>
+                <li>Model provider (e.g., &quot;Local&quot;, &quot;Ollama&quot;, &quot;OpenRouter&quot;)</li>
               </ul>
               <p className="mt-2 text-xs italic text-muted-foreground">Helps us understand which models users prefer</p>
             </div>
@@ -72,11 +64,11 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             {/* Meeting Metrics */}
             <div className="border border-border bg-muted/30 p-4">
               <h4 className="mb-2 font-semibold text-foreground">2. Anonymous Meeting Metrics</h4>
-              <ul className="ml-4 space-y-1 text-sm text-foreground">
-                <li>• Recording duration (e.g., &quot;125 seconds&quot;)</li>
-                <li>• Pause duration (e.g., &quot;5 seconds&quot;)</li>
-                <li>• Number of transcript segments</li>
-                <li>• Number of audio chunks processed</li>
+              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
+                <li>Recording duration (e.g., &quot;125 seconds&quot;)</li>
+                <li>Pause duration (e.g., &quot;5 seconds&quot;)</li>
+                <li>Number of transcript segments</li>
+                <li>Number of audio chunks processed</li>
               </ul>
               <p className="mt-2 text-xs italic text-muted-foreground">Helps us optimize performance and understand usage patterns</p>
             </div>
@@ -84,9 +76,9 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             {/* Device Types */}
             <div className="border border-border bg-muted/30 p-4">
               <h4 className="mb-2 font-semibold text-foreground">3. Device Types (Not Names)</h4>
-              <ul className="ml-4 space-y-1 text-sm text-foreground">
-                <li>• Microphone type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
-                <li>• System audio type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
+              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
+                <li>Microphone type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
+                <li>System audio type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
               </ul>
               <p className="mt-2 text-xs italic text-muted-foreground">Helps us improve compatibility, NOT the actual device names</p>
             </div>
@@ -94,11 +86,11 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             {/* Usage Patterns */}
             <div className="border border-border bg-muted/30 p-4">
               <h4 className="mb-2 font-semibold text-foreground">4. App Usage Patterns</h4>
-              <ul className="ml-4 space-y-1 text-sm text-foreground">
-                <li>• App started/stopped events</li>
-                <li>• Session duration</li>
-                <li>• Feature usage (e.g., &quot;settings changed&quot;)</li>
-                <li>• Error occurrences (helps us fix bugs)</li>
+              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
+                <li>App started/stopped events</li>
+                <li>Session duration</li>
+                <li>Feature usage (e.g., &quot;settings changed&quot;)</li>
+                <li>Error occurrences (helps us fix bugs)</li>
               </ul>
               <p className="mt-2 text-xs italic text-muted-foreground">Helps us improve user experience</p>
             </div>
@@ -106,10 +98,10 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             {/* Platform Info */}
             <div className="border border-border bg-muted/30 p-4">
               <h4 className="mb-2 font-semibold text-foreground">5. Platform Information</h4>
-              <ul className="ml-4 space-y-1 text-sm text-foreground">
-                <li>• Operating system (e.g., &quot;macOS&quot;, &quot;Windows&quot;)</li>
-                <li>• App version (automatically included in all events)</li>
-                <li>• Architecture (e.g., &quot;x86_64&quot;, &quot;aarch64&quot;)</li>
+              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
+                <li>Operating system (e.g., &quot;macOS&quot;, &quot;Windows&quot;)</li>
+                <li>App version (automatically included in all events)</li>
+                <li>Architecture (e.g., &quot;x86_64&quot;, &quot;aarch64&quot;)</li>
               </ul>
               <p className="mt-2 text-xs italic text-muted-foreground">Helps us prioritize platform support</p>
             </div>
@@ -147,21 +139,15 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-4 border-t border-border bg-muted/50 p-6">
-          <button
-            onClick={onClose}
-            className="h-9 rounded-md border border-input bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
+        <DialogFooter className="border-t border-border bg-muted/50 px-6 py-4 sm:justify-between sm:space-x-0">
+          <Button type="button" variant="outline" onClick={onClose}>
             Keep Analytics Enabled
-          </button>
-          <button
-            onClick={onConfirmDisable}
-            className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
-          >
-            Confirm: Disable Analytics
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button type="button" variant="destructive" onClick={onConfirmDisable}>
+            Disable Analytics
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
