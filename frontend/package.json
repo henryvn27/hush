@@ -125,7 +125,7 @@
         "postcss": "^8",
         "tailwindcss": "^3.4.1",
         "typescript": "^5.7.2",
-        "vitest": "4.1.10",
+        "vitest": "4.1.11",
         "wait-on": "9.0.10",
         "webdriverio": "9.29.1"
     }
