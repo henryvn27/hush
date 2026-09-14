@@ -39,6 +39,7 @@ const INSERT_AT_CURSOR_KEY = 'hush-insert-at-cursor';
 
 const PRESET_SHORTCUTS: Array<ShortcutConfig & { id: string; hint: string; keyLabel: string }> = [
   { id: 'globe', kind: 'globe', label: 'Globe / Fn', hint: 'Hold to dictate. Double-press to keep listening.', keyLabel: 'Fn' },
+  { id: 'hands-free', kind: 'global', label: 'Control + Option + Space', shortcut: 'Control+Alt+Space', hint: 'A dedicated hands-free shortcut for longer dictation.', keyLabel: '⌃ ⌥ Space' },
   { id: 'option-space', kind: 'global', label: 'Option + Space', shortcut: 'Alt+Space', hint: 'Reliable fallback on any Mac keyboard.', keyLabel: '⌥ Space' },
   { id: 'command-shift-space', kind: 'global', label: 'Command + Shift + Space', shortcut: 'Command+Shift+Space', hint: 'A dedicated three-key shortcut for busy keyboards.', keyLabel: '⌘ ⇧ Space' },
 ];
