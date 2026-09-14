@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { ArrowRightIcon, CpuChipIcon, LockClosedIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
@@ -58,9 +59,11 @@ export function WelcomeStep() {
         </div>
 
         <div className="hush-onboarding-preview" aria-label="Hush local dictation preview">
-          <img
+          <Image
             src="/hush-workspace-preview.png"
             alt="Hush Activity workspace with the compact Flow Bar visible"
+            width={720}
+            height={460}
             className="hush-onboarding-preview-image"
           />
           <div className="hush-onboarding-preview-shade" aria-hidden="true" />
