@@ -23,9 +23,15 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
     console.log(`  - Microphone: ${permissions.microphone}`);
     console.log(`  - System Audio: ${permissions.systemAudio}`);
     console.log(`  - Accessibility: ${permissions.accessibility}`);
+    try {
+      const accessibilityGranted = await invoke<boolean>("check_accessibility_permission");
+      if (accessibilityGranted) setPermissionStatus("accessibility", "authorized");
+    } catch (error) {
+      console.warn("[PermissionsStep] Could not check Accessibility permission:", error);
+    }
     // Don't auto-set permissions based on device availability
     // Permissions should only be set after explicit user action via Enable button
-  }, [permissions.microphone, permissions.systemAudio, permissions.accessibility]);
+  }, [permissions.microphone, permissions.systemAudio, permissions.accessibility, setPermissionStatus]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -155,7 +161,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
   return (
     <OnboardingContainer
       title="Let Hush hear the meeting."
-      description="Allow microphone and system-audio access before you start local capture."
+      description="Allow microphone and system-audio access before local capture. Accessibility enables automatic insertion where you were typing."
       step={4}
       hideProgress={true}
       showNavigation={allPermissionsGranted}
