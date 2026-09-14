@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { recordingService } from '@/services/recordingService';
+import { useRecordingState } from '@/contexts/RecordingStateContext';
 
 interface UseRecordingStateSyncReturn {
   isBackendRecording: boolean;
@@ -8,11 +8,12 @@ interface UseRecordingStateSyncReturn {
 }
 
 /**
- * Custom hook for synchronizing frontend recording state with backend.
- * Polls backend every 1 second to detect recording state changes.
+ * Custom hook for adapting the shared recording context to the page-level
+ * setter API used by the start/stop workflows. Backend synchronization lives
+ * in RecordingStateProvider, so this hook does not create another IPC poller.
  *
  * Features:
- * - Backend state synchronization (1-second polling)
+ * - Event-driven backend state synchronization via RecordingStateProvider
  * - Recording disabled flag management (prevents re-recording during processing)
  */
 export function useRecordingStateSync(
@@ -21,50 +22,17 @@ export function useRecordingStateSync(
   setIsMeetingActive: (value: boolean) => void
 ): UseRecordingStateSyncReturn {
   const [isRecordingDisabled, setIsRecordingDisabled] = useState(false);
+  const { isRecording: backendRecording } = useRecordingState();
 
   useEffect(() => {
-    console.log('Setting up recording state check effect, current isRecording:', isRecording);
+    if (backendRecording === isRecording) return;
 
-    const checkRecordingState = async () => {
-      try {
-        console.log('checkRecordingState called');
-        console.log('About to call is_recording command');
-        const isCurrentlyRecording = await recordingService.isRecording();
-        console.log('checkRecordingState: backend recording =', isCurrentlyRecording, 'UI recording =', isRecording);
-
-        if (isCurrentlyRecording && !isRecording) {
-          console.log('Recording is active in backend but not in UI, synchronizing state...');
-          setIsRecording(true);
-          setIsMeetingActive(true);
-        } else if (!isCurrentlyRecording && isRecording) {
-          console.log('Recording is inactive in backend but active in UI, synchronizing state...');
-          setIsRecording(false);
-        }
-      } catch (error) {
-        console.error('Failed to check recording state:', error);
-      }
-    };
-
-    // Test if Tauri is available
-    console.log('Testing Tauri availability...');
-    if (typeof window !== 'undefined' && window.__TAURI__) {
-      console.log('Tauri is available, starting state check');
-      checkRecordingState();
-
-      // Set up a polling interval to periodically check recording state
-      const interval = setInterval(checkRecordingState, 1000); // Check every 1 second
-
-      return () => {
-        console.log('Cleaning up recording state check interval');
-        clearInterval(interval);
-      };
-    } else {
-      console.log('Tauri is not available, skipping state check');
-    }
-  }, [isRecording, setIsRecording, setIsMeetingActive]);
+    setIsRecording(backendRecording);
+    if (backendRecording) setIsMeetingActive(true);
+  }, [backendRecording, isRecording, setIsRecording, setIsMeetingActive]);
 
   return {
-    isBackendRecording: isRecording,
+    isBackendRecording: backendRecording,
     isRecordingDisabled,
     setIsRecordingDisabled,
   };

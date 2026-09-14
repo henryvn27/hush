@@ -1,0 +1,31 @@
+{
+  "optimization": "Remove duplicated New Meeting recording-state polling",
+  "status": "PROVEN",
+  "scope": {
+    "files": [
+      "frontend/src/hooks/useRecordingStateSync.ts",
+      "frontend/tests/lib/recording-state-sync-performance.test.mjs"
+    ],
+    "behavior": "New Meeting consumes RecordingStateProvider synchronization instead of starting a second one-second is_recording poll."
+  },
+  "benchmark": {
+    "scenario": "60s active lifecycle after mount",
+    "warmups": 2,
+    "measuredIterations": 7,
+    "baselineIpcCalls": 182,
+    "optimizedIpcCalls": 121,
+    "callsRemoved": 61,
+    "reductionPercent": 33.52
+  },
+  "verification": {
+    "focusedBenchmark": "PASS",
+    "frontendTests": "PASS (79/79)",
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The benchmark measures deterministic IPC call volume for the lifecycle model; it is not a wall-clock latency benchmark.",
+    "Full native recording QA was not rerun for this hook-only change."
+  ]
+}
