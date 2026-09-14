@@ -195,8 +195,8 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           }
         }}
         disabled={isBusy}
-        aria-label={isRecording ? 'Dictation in progress; use Stop or Cancel' : 'Start local dictation'}
-        title={isRecording ? 'Use Stop to finish or Cancel to discard' : 'Start local dictation'}
+        aria-label={isRecording ? 'Dictation in progress; use Stop or Cancel' : `Hold ${shortcutLabel} to dictate`}
+        title={isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate`}
       >
         <span className={isLive ? 'hush-flow-orb hush-flow-orb-live' : 'hush-flow-orb'}>
           <Image src="/hush-mark.png" alt="" width={24} height={24} unoptimized aria-hidden="true" />
@@ -205,7 +205,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           <span className="hush-flow-kicker">Hush</span>
           <span className="hush-flow-status">
             <span className={isLive ? 'hush-flow-status-dot hush-flow-status-dot-live' : 'hush-flow-status-dot'} aria-hidden="true" />
-            {isRecording ? statusLabel : 'Click to start dictating'}
+            {isRecording ? statusLabel : `Hold ${shortcutLabel} to dictate`}
             {isRecording && <span className="hush-flow-time">{formatDuration(recordingDuration)}</span>}
           </span>
         </span>
