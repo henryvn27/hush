@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { readShortcutConfig, saveShortcutConfig, type ShortcutConfig } from './ShortcutRuntime';
 import { readPhraseRules, writePhraseRules, type HushPhraseRule, type HushPhraseRuleKind } from '@/lib/hush-personalization';
 import { useConfig } from '@/contexts/ConfigContext';
+import { LANGUAGES } from '@/constants/languages';
 
 interface FlowAudioDevice {
   name: string;
@@ -24,15 +25,7 @@ interface FlowRecordingPreferences {
   preferred_system_device: string | null;
 }
 
-const FLOW_LANGUAGES = [
-  ['auto', 'Auto detect'],
-  ['en', 'English'],
-  ['es', 'Spanish'],
-  ['fr', 'French'],
-  ['de', 'German'],
-  ['ja', 'Japanese'],
-  ['zh', 'Chinese'],
-] as const;
+const FLOW_LANGUAGES = LANGUAGES.map(({ code, name }) => [code, name] as const);
 
 function parsePhraseImport(text: string): { rows: Array<Pick<HushPhraseRule, 'kind' | 'trigger' | 'replacement'>>; rejected: number } {
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
