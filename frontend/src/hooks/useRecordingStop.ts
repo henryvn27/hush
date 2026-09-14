@@ -19,6 +19,35 @@ import { applyPhraseRules, readPhraseRules } from '@/lib/hush-personalization';
 
 type SummaryStatus = 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'completed' | 'error';
 
+async function deliverTranscriptToFocusedApp(transcriptText: string) {
+  saveLastTranscript(transcriptText);
+  const shouldInsertAtCursor = typeof window !== "undefined"
+    && window.localStorage.getItem("hush-insert-at-cursor") === "true";
+
+  if (!shouldInsertAtCursor || !transcriptText) return;
+
+  try {
+    const insertionResult = await insertIntoFocusedApp(transcriptText);
+    if (insertionResult.mode === "inserted") {
+      toast.success("Dictation inserted", {
+        description: "Your local transcript was pasted into the focused app.",
+        duration: 3500,
+      });
+    } else {
+      toast.warning("Transcript copied instead", {
+        description: "Allow Hush in macOS Accessibility settings to paste automatically.",
+        duration: 6000,
+      });
+    }
+  } catch (insertError) {
+    console.warn("Focused-app insertion failed; copying transcript instead:", insertError);
+    toast.error("Could not insert or copy transcript", {
+      description: insertError instanceof Error ? insertError.message : "Check Hush permissions and try again.",
+      duration: 6000,
+    });
+  }
+}
+
 interface UseRecordingStopReturn {
   handleRecordingStop: (callApi: boolean) => Promise<void>;
   handleRecordingCancel: () => Promise<void>;
@@ -249,6 +278,12 @@ export function useRecordingStop(
           last_transcript: freshTranscripts.length > 0 ? freshTranscripts[freshTranscripts.length - 1].text.substring(0, 30) + '...' : 'none',
         });
 
+        const transcriptText = freshTranscripts
+          .map((transcript) => transcript.text.trim())
+          .filter(Boolean)
+          .join(" ");
+        await deliverTranscriptToFocusedApp(transcriptText);
+
         try {
           const responseData = await storageService.saveMeeting(
             savedMeetingName || meetingTitle || 'New Meeting',  // PREFER savedMeetingName (backend source)
@@ -260,37 +295,6 @@ export function useRecordingStop(
           if (!meetingId) {
             console.error('No meeting_id in response:', responseData);
             throw new Error('No meeting ID received from save operation');
-          }
-
-          const transcriptText = freshTranscripts
-            .map((transcript) => transcript.text.trim())
-            .filter(Boolean)
-            .join(' ');
-          saveLastTranscript(transcriptText);
-          const shouldInsertAtCursor = typeof window !== 'undefined'
-            && window.localStorage.getItem('hush-insert-at-cursor') === 'true';
-
-          if (shouldInsertAtCursor && transcriptText) {
-            try {
-              const insertionResult = await insertIntoFocusedApp(transcriptText);
-              if (insertionResult.mode === 'inserted') {
-                toast.success('Dictation inserted', {
-                  description: 'Your local transcript was pasted into the focused app.',
-                  duration: 3500,
-                });
-              } else {
-                toast.warning('Transcript copied instead', {
-                  description: 'Allow Hush in macOS Accessibility settings to paste automatically.',
-                  duration: 6000,
-                });
-              }
-            } catch (insertError) {
-              console.warn('Focused-app insertion failed; copying transcript instead:', insertError);
-              toast.error('Could not insert or copy transcript', {
-                description: insertError instanceof Error ? insertError.message : 'Check Hush permissions and try again.',
-                duration: 6000,
-              });
-            }
           }
 
           let shouldDetectSummaryLanguage = false;

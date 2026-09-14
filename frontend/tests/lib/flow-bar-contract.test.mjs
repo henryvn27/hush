@@ -7,6 +7,7 @@ const flowBarWindow = readFileSync(new URL('../../src/components/hush/FlowBarWin
 const nativeSource = readFileSync(new URL('../../src-tauri/src/lib.rs', import.meta.url), 'utf8');
 const flowSettings = readFileSync(new URL('../../src/components/hush/FlowSettings.tsx', import.meta.url), 'utf8');
 const shortcutRuntime = readFileSync(new URL('../../src/components/hush/ShortcutRuntime.tsx', import.meta.url), 'utf8');
+const recordingStop = readFileSync(new URL('../../src/hooks/useRecordingStop.ts', import.meta.url), 'utf8');
 
 test('native Flow Bar synchronizes backend recording state in its separate WebView', () => {
   assert.match(context, /syncNow:\s*\(\)\s*=>\s*Promise<void>/);
@@ -28,6 +29,7 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBarWindow, /currentMonitor\(\)/);
   assert.match(flowBarWindow, /setPosition\(new PhysicalPosition/);
   assert.ok(((shortcutRuntime.match(/hush-toggle-recording/g) || []).length) >= 2);
+  assert.match(recordingStop, /deliverTranscriptToFocusedApp\(transcriptText\)[\s\S]*storageService\.saveMeeting/);
   assert.match(nativeSource, /current_monitor\(\)[\s\S]*primary_monitor\(\)/);
   assert.match(nativeSource, /flow_bar_start_recording[\s\S]*validate_transcription_model_ready[\s\S]*default_input_device[\s\S]*capture_focused_app\(\)/);
 });
