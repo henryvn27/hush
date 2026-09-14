@@ -21,6 +21,8 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.doesNotMatch(flowBar, /isRecording \? emitToMainWithFallback\('request-recording-toggle'/);
   assert.match(flowBar, /startDragging\(\)/);
   assert.match(flowBar, /target\?\.closest\('button'\)/);
+  assert.match(flowBar, /Copy last dictation/);
+  assert.match(flowBar, /navigator\.clipboard\.writeText\(transcript\)/);
   assert.match(flowBarWindow, /hush-flow-bar-disabled/);
   assert.match(flowBarWindow, /currentMonitor\(\)/);
   assert.match(flowBarWindow, /setPosition\(new PhysicalPosition/);

@@ -1,6 +1,6 @@
 'use client';
 
-import { ClipboardDocumentIcon, EllipsisHorizontalIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentCheckIcon, ClipboardDocumentIcon, EllipsisHorizontalIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Menu } from '@base-ui/react/menu';
 import { emit, emitTo } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
@@ -155,6 +155,17 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     else window.dispatchEvent(new CustomEvent('request-paste-last'));
   };
 
+  const copyLastTranscript = async () => {
+    const transcript = readLastTranscript();
+    if (!transcript) return;
+    try {
+      await navigator.clipboard.writeText(transcript);
+      setHasLastTranscript(true);
+    } catch (error) {
+      console.warn('[Hush Flow Bar] Could not copy the last dictation', error);
+    }
+  };
+
   if (!floating && isTauriRuntime() && !isBrowserQaRuntime()) return null;
   if (!barEnabled || (hiddenUntil && hiddenUntil > Date.now())) return null;
 
@@ -236,6 +247,14 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
                 >
                   <ClipboardDocumentIcon className="size-3.5" aria-hidden="true" />
                   Paste last dictation
+                </Menu.Item>
+                <Menu.Item
+                  className="hush-flow-menu-item"
+                  disabled={!hasLastTranscript}
+                  onClick={() => void copyLastTranscript()}
+                >
+                  <ClipboardDocumentCheckIcon className="size-3.5" aria-hidden="true" />
+                  Copy last dictation
                 </Menu.Item>
                 <Menu.Item className="hush-flow-menu-item" onClick={hideForAnHour}>
                   Hide for 1 hour
