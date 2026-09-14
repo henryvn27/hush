@@ -1,14 +1,110 @@
 {
-  "campaignStatus": "ACTIVE",
+  "campaignStatus": "COMPLETE",
   "campaignStarted": "2026-09-14",
   "runs": [
-    {"number":1,"candidate":"Eliminate Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","reductionPercent":99.01,"commit":"35a08b8"},
-    {"number":2,"candidate":"Batch recovery checkpoint availability checks","verdict":"PROVEN","reductionPercent":99,"commit":"11a10c5"},
-    {"number":3,"candidate":"Reuse model list during blocked recording-start readiness checks","verdict":"PROVEN","whisperReductionPercent":50,"parakeetReductionPercent":33.33,"commit":"ba3ef65"},
-    {"number":4,"candidate":"Parallelize transcription model picker provider loading","verdict":"PROVEN","beforeMedianMs":44.306666,"afterMedianMs":22.211125,"reductionPercent":49.87,"commit":"3e4cfd0"},
-    {"number":5,"candidate":"Parallelize meeting-details metadata and first transcript loading","verdict":"PROVEN","beforeMedianMs":44.287125,"afterMedianMs":22.22475,"reductionPercent":49.82,"commitPending":true,"files":["frontend/src/hooks/usePaginatedTranscripts.ts","frontend/tests/lib/paginated-transcripts-performance.test.mjs"]}
+    {
+      "number": 1,
+      "candidate": "Eliminate Meetings-library metadata N+1 IPC loading",
+      "verdict": "PROVEN",
+      "reductionPercent": 99.01,
+      "commit": "35a08b8"
+    },
+    {
+      "number": 2,
+      "candidate": "Batch recovery checkpoint availability checks",
+      "verdict": "PROVEN",
+      "reductionPercent": 99,
+      "commit": "11a10c5"
+    },
+    {
+      "number": 3,
+      "candidate": "Reuse model list during blocked recording-start readiness checks",
+      "verdict": "PROVEN",
+      "whisperReductionPercent": 50,
+      "parakeetReductionPercent": 33.33,
+      "commit": "ba3ef65"
+    },
+    {
+      "number": 4,
+      "candidate": "Parallelize transcription model picker provider loading",
+      "verdict": "PROVEN",
+      "beforeMedianMs": 44.306666,
+      "afterMedianMs": 22.211125,
+      "reductionPercent": 49.87,
+      "commit": "3e4cfd0"
+    },
+    {
+      "number": 5,
+      "candidate": "Parallelize meeting-details metadata and first transcript loading",
+      "verdict": "PROVEN",
+      "beforeMedianMs": 44.287125,
+      "afterMedianMs": 22.22475,
+      "reductionPercent": 49.82,
+      "commit": "c5591ac"
+    },
+    {
+      "number": 6,
+      "candidate": "Unused processing-progress hook audit",
+      "verdict": "UNMEASURED_NO_WIN",
+      "evidence": [
+        "rg found no shipped caller outside the hook and its progress type",
+        "No runtime workload exists to optimize without first adding product behavior"
+      ],
+      "change": "none"
+    },
+    {
+      "number": 7,
+      "candidate": "Meeting-history stable sort audit",
+      "verdict": "INCONCLUSIVE_NO_WIN",
+      "evidence": [
+        "The implementation decorates rows with parsed timestamps and original indexes to preserve stable ordering",
+        "A 10000-row timing comparison was within noise and no behavior-preserving replacement produced a measurable win"
+      ],
+      "change": "none"
+    },
+    {
+      "number": 8,
+      "candidate": "Meeting-history query filtering and hit-map audit",
+      "verdict": "INCONCLUSIVE_NO_WIN",
+      "evidence": [
+        "Filtering already builds one hit map per query and performs one row pass",
+        "Memoization would require stronger immutable-input guarantees and the current page-sized workload did not justify added invalidation complexity"
+      ],
+      "change": "none"
+    },
+    {
+      "number": 9,
+      "candidate": "Transcript streaming timer audit",
+      "verdict": "REJECTED_BEHAVIOR_REGRESSION",
+      "evidence": [
+        "The 15ms interval deliberately controls an 800ms typewriter reveal and initial five-character response",
+        "Replacing it with a coarser or consolidated timer changes visible pacing without reducing required updates"
+      ],
+      "change": "none"
+    },
+    {
+      "number": 10,
+      "candidate": "Sidebar summary polling audit",
+      "verdict": "REJECTED_BEHAVIOR_REGRESSION",
+      "evidence": [
+        "The five-second poll is the backend completion and timeout contract for long-running local summaries",
+        "Consolidating or delaying polls would increase completion latency or weaken timeout/error recovery"
+      ],
+      "change": "none"
+    }
   ],
-  "consecutiveNoWinRuns": 0,
-  "verification":{"focusedBenchmark":"PASS","frontendTests":"PASS (84/84)","typecheck":"PASS","productionBuild":"PASS","diffCheck":"PASS","rustCheck":"NOT RUN: cargo is unavailable on this host"},
-  "limitations":["Native Rust compilation and runtime timing require a host with cargo."]
+  "consecutiveNoWinRuns": 5,
+  "verification": {
+    "focusedBenchmark": "PASS for runs 1-5",
+    "frontendTests": "PASS (84/84 after run 5)",
+    "targetedAuditTests": "PASS (meeting-history and transcript-streaming contracts)",
+    "typecheck": "PASS after run 5",
+    "productionBuild": "PASS after run 5",
+    "diffCheck": "PASS",
+    "rustCheck": "NOT RUN: cargo is unavailable on this host"
+  },
+  "limitations": [
+    "Native Rust compilation and runtime timing require a host with cargo.",
+    "No-win tail records rejected or unmeasured candidates where a change would be speculative, behavior-altering, or not on a shipped runtime path."
+  ]
 }
