@@ -905,6 +905,10 @@
     @apply px-2.5 pb-1.5 pt-1 font-mono text-[0.6rem] font-medium uppercase tracking-[0.1em] text-muted-foreground;
   }
 
+  .hush-flow-menu-controls { @apply mb-1.5 grid gap-1.5 border-b border-border px-2.5 pb-2.5; }
+  .hush-flow-menu-controls label { @apply grid gap-1 text-[0.625rem] font-medium text-muted-foreground; }
+  .hush-flow-menu-controls select { @apply h-7 min-w-0 rounded-md border border-border bg-background px-2 text-[0.6875rem] text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30; }
+  .hush-flow-menu-error { @apply text-[0.625rem] leading-4 text-[hsl(var(--destructive))]; }
   .hush-flow-menu-item {
     @apply flex min-h-8 w-full cursor-default items-center gap-2 rounded-[0.45rem] px-2.5 text-left text-xs text-foreground outline-none transition-colors hover:bg-secondary focus:bg-secondary;
   }

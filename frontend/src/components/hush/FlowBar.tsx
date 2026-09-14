@@ -29,6 +29,25 @@ function isBrowserQaRuntime() {
   return process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true';
 }
 
+const FLOW_LANGUAGES = [
+  ['auto', 'Auto detect'],
+  ['en', 'English'],
+  ['es', 'Spanish'],
+  ['fr', 'French'],
+  ['de', 'German'],
+  ['ja', 'Japanese'],
+  ['zh', 'Chinese'],
+] as const;
+
+interface FlowAudioDevice { name: string; device_type: 'Input' | 'Output'; }
+interface FlowRecordingPreferences {
+  save_folder: string;
+  auto_save: boolean;
+  file_format: string;
+  preferred_mic_device: string | null;
+  preferred_system_device: string | null;
+}
+
 function formatFlowBarStartError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error || '');
   const normalized = raw.toLowerCase();
@@ -84,6 +103,10 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
   const [shortcutLabel, setShortcutLabel] = useState('Fn');
   const [hasLastTranscript, setHasLastTranscript] = useState(false);
   const [flowError, setFlowError] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('auto');
+  const [audioDevices, setAudioDevices] = useState<FlowAudioDevice[]>([]);
+  const [recordingPreferences, setRecordingPreferences] = useState<FlowRecordingPreferences | null>(null);
+  const [controlError, setControlError] = useState<string | null>(null);
   const isBusy = isStopping || isProcessing || isSaving;
   const isLive = isRecording && !isPaused;
   const nativeVisibility = useCallback(async (visible: boolean) => {
@@ -108,6 +131,16 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     }
     setBarEnabled(window.localStorage.getItem('hush-flow-bar-disabled') !== 'true');
     setHasLastTranscript(Boolean(readLastTranscript()));
+    setSelectedLanguage(window.localStorage.getItem('primaryLanguage') || 'auto');
+    void Promise.all([
+      invoke<FlowAudioDevice[]>('get_audio_devices'),
+      invoke<FlowRecordingPreferences>('get_recording_preferences'),
+    ]).then(([devices, preferences]) => {
+      setAudioDevices(devices.filter((device) => device.device_type === 'Input'));
+      setRecordingPreferences(preferences);
+    }).catch((error) => {
+      console.warn('[Hush Flow Bar] Could not load capture controls', error);
+    });
     const shortcut = readShortcutConfig();
     setShortcutLabel(shortcut.kind === 'globe' ? 'Fn' : shortcut.label);
 
@@ -192,6 +225,29 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
       setHasLastTranscript(true);
     } catch (error) {
       console.warn('[Hush Flow Bar] Could not copy the last dictation', error);
+    }
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language);
+    window.localStorage.setItem('primaryLanguage', language);
+    void invoke('set_language_preference', { language }).catch((error) => {
+      setControlError('Could not change the dictation language.');
+      console.warn('[Hush Flow Bar] Could not set language', error);
+    });
+  };
+
+  const handleMicrophoneChange = async (deviceName: string) => {
+    if (!recordingPreferences) return;
+    const nextPreferences = { ...recordingPreferences, preferred_mic_device: deviceName === 'default' ? null : deviceName };
+    setRecordingPreferences(nextPreferences);
+    try {
+      await invoke('set_recording_preferences', { preferences: nextPreferences });
+      setControlError(null);
+    } catch (error) {
+      setRecordingPreferences(recordingPreferences);
+      setControlError('Could not save the microphone choice.');
+      console.warn('[Hush Flow Bar] Could not set microphone', error);
     }
   };
 
@@ -280,6 +336,31 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           <Menu.Positioner className="hush-flow-menu-positioner" side="top" align="end" sideOffset={10}>
             <Menu.Popup className="hush-flow-menu" aria-label="Flow Bar menu">
               <div className="hush-flow-menu-heading">Flow Bar</div>
+              <div className="hush-flow-menu-controls">
+                <label>
+                  <span>Microphone</span>
+                  <select
+                    value={recordingPreferences?.preferred_mic_device || 'default'}
+                    onChange={(event) => void handleMicrophoneChange(event.target.value)}
+                    aria-label="Flow Bar microphone"
+                    disabled={!recordingPreferences}
+                  >
+                    <option value="default">System default</option>
+                    {audioDevices.map((device) => <option key={device.name} value={device.name}>{device.name}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Language</span>
+                  <select
+                    value={FLOW_LANGUAGES.some(([code]) => code === selectedLanguage) ? selectedLanguage : 'auto'}
+                    onChange={(event) => handleLanguageChange(event.target.value)}
+                    aria-label="Flow Bar dictation language"
+                  >
+                    {FLOW_LANGUAGES.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                  </select>
+                </label>
+                {controlError && <p className="hush-flow-menu-error" role="alert">{controlError}</p>}
+              </div>
               <Menu.Group>
                 <Menu.Item className="hush-flow-menu-item" onClick={() => floating ? void emitToMainWithFallback('hush-main-navigation', { path: '/settings' }) : router.push('/settings')}>
                   Settings

@@ -25,6 +25,8 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBar, /target\?\.closest\('button'\)/);
   assert.match(flowBar, /request-recording-cancel/);
   assert.match(flowBar, /event\.key !== 'Escape'/);
+  assert.match(flowBar, /Flow Bar microphone/);
+  assert.match(flowBar, /Flow Bar dictation language/);
   assert.match(flowBar, /Copy last dictation/);
   assert.match(flowBar, /navigator\.clipboard\.writeText\(transcript\)/);
   assert.match(flowBarWindow, /hush-flow-bar-disabled/);
