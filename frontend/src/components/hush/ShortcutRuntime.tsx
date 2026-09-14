@@ -71,7 +71,12 @@ export function ShortcutRuntime() {
 
         const nextShortcuts = shortcutBindings(config);
         for (const shortcut of nextShortcuts) {
-          await register(shortcut, () => undefined);
+          await register(shortcut, () => {
+            // The global shortcut plugin only reports the key press here. Feed
+            // it into the same activation bridge used by the Globe/Fn monitor
+            // so custom bindings behave like the built-in shortcut.
+            window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
+          });
           activeShortcuts.push(shortcut);
         }
 
