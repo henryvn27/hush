@@ -5,6 +5,7 @@ import type { KeyboardEvent } from 'react';
 import { ArrowTopRightOnSquareIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, LockClosedIcon, MicrophoneIcon, PlusIcon, ShieldCheckIcon, SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@base-ui/react/switch';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
 import { readShortcutConfig, saveShortcutConfig, type ShortcutConfig } from './ShortcutRuntime';
 import { readPhraseRules, writePhraseRules, type HushPhraseRule, type HushPhraseRuleKind } from '@/lib/hush-personalization';
@@ -82,6 +83,9 @@ export function FlowSettings() {
   const [audioDevices, setAudioDevices] = useState<FlowAudioDevice[]>([]);
   const [recordingPreferences, setRecordingPreferences] = useState<FlowRecordingPreferences | null>(null);
   const [isSavingMic, setIsSavingMic] = useState(false);
+  const [isTestingMic, setIsTestingMic] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
+  const [micTestError, setMicTestError] = useState<string | null>(null);
   const [accessibilityReady, setAccessibilityReady] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -109,6 +113,39 @@ export function FlowSettings() {
     window.addEventListener('hush-shortcut-rejected', handleShortcutRejected);
     return () => window.removeEventListener('hush-shortcut-rejected', handleShortcutRejected);
   }, []);
+
+  useEffect(() => {
+    if (!("__TAURI_INTERNALS__" in window)) return;
+    let unlisten: (() => void) | undefined;
+    void listen<{ levels?: Array<{ device_type?: string; rms_level?: number }> }>('audio-levels', (event) => {
+      const inputLevels = (event.payload.levels ?? []).filter((level) => level.device_type === 'Input');
+      setMicLevel(inputLevels.reduce((highest, level) => Math.max(highest, level.rms_level ?? 0), 0));
+    }).then((cleanup) => { unlisten = cleanup; });
+    return () => { unlisten?.(); void invoke('stop_audio_level_monitoring').catch(() => undefined); };
+  }, []);
+
+  const handleMicTest = async () => {
+    if (!("__TAURI_INTERNALS__" in window)) return;
+    if (isTestingMic) {
+      await invoke('stop_audio_level_monitoring').catch(() => undefined);
+      setIsTestingMic(false);
+      setMicLevel(0);
+      return;
+    }
+    const deviceName = recordingPreferences?.preferred_mic_device ?? audioDevices[0]?.name;
+    if (!deviceName) {
+      setMicTestError('No microphone detected. Connect one, then refresh devices.');
+      return;
+    }
+    setMicTestError(null);
+    try {
+      await invoke('start_audio_level_monitoring', { deviceNames: [deviceName] });
+      setIsTestingMic(true);
+    } catch (error) {
+      setMicTestError(error instanceof Error ? error.message : 'Hush could not open this microphone.');
+      setIsTestingMic(false);
+    }
+  };
 
   const handleFlowBarChange = (enabled: boolean) => {
     setShowFlowBar(enabled);
@@ -464,6 +501,19 @@ export function FlowSettings() {
                   <option value="default">System default</option>
                   {audioDevices.map((device) => <option key={device.name} value={device.name}>{device.name}</option>)}
                 </select>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleMicTest()}
+                    disabled={!recordingPreferences}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <MicrophoneIcon className="size-3.5" aria-hidden="true" />
+                    {isTestingMic ? 'Stop test' : 'Test microphone'}
+                  </button>
+                  {isTestingMic && <span className="hush-mic-test-meter" aria-label="Microphone input level"><span style={{ width: String(Math.min(100, Math.round(micLevel * 100))) + '%'  }} /></span>}
+                </div>
+                {micTestError && <p className="mt-1.5 text-xs text-[hsl(var(--destructive))]" role="alert">{micTestError}</p>}
               </label>
               <label className="grid gap-1.5 text-xs font-medium text-muted-foreground">
                 Dictation language

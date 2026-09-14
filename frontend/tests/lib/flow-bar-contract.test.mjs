@@ -5,6 +5,7 @@ import test from 'node:test';
 const context = readFileSync(new URL('../../src/contexts/RecordingStateContext.tsx', import.meta.url), 'utf8');
 const flowBarWindow = readFileSync(new URL('../../src/components/hush/FlowBarWindow.tsx', import.meta.url), 'utf8');
 const nativeSource = readFileSync(new URL('../../src-tauri/src/lib.rs', import.meta.url), 'utf8');
+const flowSettings = readFileSync(new URL('../../src/components/hush/FlowSettings.tsx', import.meta.url), 'utf8');
 
 test('native Flow Bar synchronizes backend recording state in its separate WebView', () => {
   assert.match(context, /syncNow:\s*\(\)\s*=>\s*Promise<void>/);
