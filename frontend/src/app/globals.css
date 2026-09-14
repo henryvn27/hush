@@ -1060,7 +1060,7 @@
   }
 
   .hush-onboarding-welcome {
-    @apply grid max-w-[62rem] overflow-hidden rounded-[0.85rem] border border-border bg-card shadow-[0_16px_40px_hsl(var(--shadow-color)/0.08)] lg:grid-cols-[minmax(0,1fr)_minmax(22rem,1fr)];
+    @apply grid min-h-[min(36rem,calc(100dvh-8.5rem))] w-full overflow-hidden border-y border-border bg-card lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,1.1fr)];
   }
 
   .hush-onboarding-topbar {
@@ -1097,15 +1097,15 @@
   }
 
   .hush-onboarding-main {
-    @apply flex min-h-0 flex-1 justify-center overflow-hidden px-12 pb-9 pt-10 max-[1160px]:px-9;
+    @apply flex min-h-0 flex-1 justify-center overflow-hidden px-0 pb-0 pt-0;
   }
 
   .hush-onboarding-column {
-    @apply flex min-h-0 w-full max-w-[62rem] flex-col;
+    @apply flex min-h-0 w-full max-w-[78rem] flex-col;
   }
 
   .hush-onboarding-features {
-    @apply p-6 sm:p-7;
+    @apply flex flex-col justify-center p-8 sm:p-12 lg:p-16;
   }
 
   .hush-onboarding-feature-list {
@@ -1129,7 +1129,7 @@
   }
 
   .hush-onboarding-preview {
-    @apply relative min-h-[23rem] overflow-hidden text-white;
+    @apply relative min-h-[23rem] overflow-hidden border-l border-border text-white;
     background: #2d2b30;
   }
 
