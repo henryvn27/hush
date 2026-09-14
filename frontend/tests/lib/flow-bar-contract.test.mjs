@@ -30,6 +30,8 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBar, /Flow Bar microphone/);
   assert.match(flowBar, /Flow Bar dictation language/);
   assert.match(flowBar, /Copy last dictation/);
+  assert.match(flowSettings, /Hide Flow Bar from screen shares/);
+  assert.match(flowSettings, /set_flow_bar_screen_capture_protection/);
   assert.match(flowBar, /navigator\.clipboard\.writeText\(transcript\)/);
   assert.match(flowBarWindow, /hush-flow-bar-disabled/);
   assert.match(flowBarWindow, /currentMonitor\(\)/);

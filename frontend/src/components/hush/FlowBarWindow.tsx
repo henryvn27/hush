@@ -3,6 +3,7 @@
 import { RecordingStatus, RecordingStateProvider, useRecordingState } from '@/contexts/RecordingStateContext';
 import { FlowBar } from './FlowBar';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import { PhysicalPosition } from '@tauri-apps/api/dpi';
 import { currentMonitor, getCurrentWindow, primaryMonitor } from '@tauri-apps/api/window';
 import { useEffect } from 'react';
@@ -31,6 +32,7 @@ function LifecycleBridge() {
 function NativeVisibilityBridge() {
   useEffect(() => {
     const shouldShowFromPersistedState = () => {
+      void invoke('set_flow_bar_screen_capture_protection', { protected: window.localStorage.getItem('hush-hide-flow-bar-from-capture') === 'true' }).catch(() => undefined);
       const disabled = window.localStorage.getItem('hush-flow-bar-disabled') === 'true';
       const hiddenUntil = Number(window.localStorage.getItem('hush-flow-bar-hidden-until') ?? 0);
       const onboardingComplete = window.localStorage.getItem('hush-onboarding-completed') === 'true';

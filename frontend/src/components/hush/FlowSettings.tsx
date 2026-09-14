@@ -78,6 +78,7 @@ function parsePhraseImport(text: string): { rows: Array<Pick<HushPhraseRule, 'ki
 
 const FLOW_BAR_DISABLED_KEY = 'hush-flow-bar-disabled';
 const INSERT_AT_CURSOR_KEY = 'hush-insert-at-cursor';
+const HIDE_FLOW_BAR_CAPTURE_KEY = 'hush-hide-flow-bar-from-capture';
 
 const PRESET_SHORTCUTS: Array<ShortcutConfig & { id: string; hint: string; keyLabel: string }> = [
   { id: 'globe', kind: 'globe', label: 'Globe / Fn', hint: 'Hold to dictate. Double-press to keep listening.', keyLabel: 'Fn' },
@@ -115,6 +116,7 @@ function shortcutDisplayFromKey(event: KeyboardEvent<HTMLButtonElement>) {
 export function FlowSettings() {
   const { selectedLanguage, setSelectedLanguage } = useConfig();
   const [showFlowBar, setShowFlowBar] = useState(true);
+  const [hideFlowBarFromCapture, setHideFlowBarFromCapture] = useState(false);
   const [insertAtCursor, setInsertAtCursor] = useState(false);
   const [shortcut, setShortcut] = useState<ShortcutConfig>(() => readShortcutConfig());
   const [pasteShortcut, setPasteShortcut] = useState<PasteShortcutConfig>(() => readPasteShortcutConfig());
@@ -136,6 +138,8 @@ export function FlowSettings() {
 
   useEffect(() => {
     setShowFlowBar(window.localStorage.getItem(FLOW_BAR_DISABLED_KEY) !== 'true');
+    setHideFlowBarFromCapture(window.localStorage.getItem(HIDE_FLOW_BAR_CAPTURE_KEY) === 'true');
+    void invoke('set_flow_bar_screen_capture_protection', { protected: window.localStorage.getItem(HIDE_FLOW_BAR_CAPTURE_KEY) === 'true' }).catch(() => undefined);
     setInsertAtCursor(window.localStorage.getItem(INSERT_AT_CURSOR_KEY) !== 'false');
     setPhraseRules(readPhraseRules());
 
@@ -205,6 +209,16 @@ export function FlowSettings() {
     setShowFlowBar(enabled);
     window.localStorage.setItem(FLOW_BAR_DISABLED_KEY, String(!enabled));
     window.dispatchEvent(new CustomEvent('hush-flow-bar-visibility', { detail: { enabled } }));
+  };
+
+  const handleHideFlowBarFromCaptureChange = (enabled: boolean) => {
+    setHideFlowBarFromCapture(enabled);
+    window.localStorage.setItem(HIDE_FLOW_BAR_CAPTURE_KEY, String(enabled));
+    void invoke('set_flow_bar_screen_capture_protection', { protected: enabled }).catch((error) => {
+      setHideFlowBarFromCapture(false);
+      window.localStorage.setItem(HIDE_FLOW_BAR_CAPTURE_KEY, 'false');
+      toast.error('Could not update screen-share privacy', { description: error instanceof Error ? error.message : 'This setting is available on macOS.' });
+    });
   };
 
   const handleInsertAtCursorChange = (enabled: boolean) => {
@@ -494,6 +508,23 @@ export function FlowSettings() {
           aria-label="Show Flow Bar"
           checked={showFlowBar}
           onCheckedChange={handleFlowBarChange}
+          className="hush-base-switch"
+        >
+          <Switch.Thumb className="hush-base-switch-thumb" />
+        </Switch.Root>
+      </div>
+
+      <div className="hush-settings-flow-row">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Hide Flow Bar from screen shares</p>
+          <p className="mt-1 text-xs text-muted-foreground">Keep the floating control out of screenshots and screen recordings when privacy matters.</p>
+        </div>
+        <Switch.Root
+          nativeButton
+          render={<button type="button" />}
+          aria-label="Hide Flow Bar from screen shares"
+          checked={hideFlowBarFromCapture}
+          onCheckedChange={handleHideFlowBarFromCaptureChange}
           className="hush-base-switch"
         >
           <Switch.Thumb className="hush-base-switch-thumb" />

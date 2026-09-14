@@ -3,6 +3,7 @@ identifier = "flow-bar-commands"
 description = "Allows the ambient Flow Bar to read the single native recording state."
 commands.allow = [
   "flow_bar_start_recording",
+  "set_flow_bar_screen_capture_protection",
   "get_recording_state",
 ]
 

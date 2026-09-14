@@ -580,6 +580,34 @@ async fn start_recording_with_devices_and_meeting<R: Runtime>(
 }
 
 #[tauri::command]
+fn set_flow_bar_screen_capture_protection<R: Runtime>(app: AppHandle<R>, protected: bool) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use objc::runtime::Object;
+        use objc::{msg_send, sel, sel_impl};
+
+        let window = app
+            .get_webview_window("flow-bar")
+            .ok_or_else(|| "Hush Flow Bar window is unavailable".to_string())?;
+        let ns_window = window.ns_window().map_err(|error| error.to_string())? as *mut Object;
+        if ns_window.is_null() {
+            return Err("Hush could not access the Flow Bar window".to_string());
+        }
+        let sharing_type: u64 = if protected { 0 } else { 1 };
+        unsafe {
+            let _: () = msg_send![ns_window, setSharingType: sharing_type];
+        }
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app, protected);
+        Ok(())
+    }
+}
+
+#[tauri::command]
 async fn flow_bar_start_recording<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
     log_info!("Starting recording from the native Flow Bar command");
     audio::transcription::validate_transcription_model_ready(&app).await?;
@@ -844,6 +872,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             start_recording,
             flow_bar_start_recording,
+            set_flow_bar_screen_capture_protection,
             stop_recording,
             audio::recording_commands::cancel_recording,
             paste_text_at_cursor,
