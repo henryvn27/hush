@@ -910,7 +910,7 @@
   }
 
   .hush-flow-menu-trigger {
-    @apply grid size-5 shrink-0 place-items-center rounded-full text-white/50 opacity-0 transition-opacity hover:bg-white/10 hover:text-white group-hover:opacity-100 group-focus-within:opacity-100;
+    @apply grid size-5 shrink-0 place-items-center rounded-full text-white/50 opacity-50 transition-opacity hover:bg-white/10 hover:text-white group-hover:opacity-100 group-focus-within:opacity-100;
   }
 
   .hush-flow-menu-positioner {
