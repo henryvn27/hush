@@ -6,6 +6,7 @@ export interface OnboardingPermissions {
   microphone: PermissionStatus;
   systemAudio: PermissionStatus;
   screenRecording: PermissionStatus;
+  accessibility: PermissionStatus;
 }
 
 export interface OnboardingContainerProps {

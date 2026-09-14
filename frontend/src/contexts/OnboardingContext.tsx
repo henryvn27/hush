@@ -105,6 +105,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     microphone: 'not_determined',
     systemAudio: 'not_determined',
     screenRecording: 'not_determined',
+    accessibility: 'not_determined',
   });
   const [permissionsSkipped, setPermissionsSkipped] = useState(false);
 

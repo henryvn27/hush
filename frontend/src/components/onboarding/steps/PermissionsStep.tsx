@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { ArrowPathIcon, MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, CursorArrowRaysIcon, MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
@@ -22,9 +22,10 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
     console.log('[PermissionsStep] Current permission states:');
     console.log(`  - Microphone: ${permissions.microphone}`);
     console.log(`  - System Audio: ${permissions.systemAudio}`);
+    console.log(`  - Accessibility: ${permissions.accessibility}`);
     // Don't auto-set permissions based on device availability
     // Permissions should only be set after explicit user action via Enable button
-  }, [permissions.microphone, permissions.systemAudio]);
+  }, [permissions.microphone, permissions.systemAudio, permissions.accessibility]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -99,6 +100,28 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
     }
   };
 
+  const handleAccessibilityAction = async () => {
+    setIsPending(true);
+    try {
+      const alreadyGranted = await invoke<boolean>("check_accessibility_permission");
+      if (alreadyGranted) {
+        setPermissionStatus("accessibility", "authorized");
+        return;
+      }
+
+      const granted = await invoke<boolean>("request_accessibility_permission");
+      setPermissionStatus("accessibility", granted ? "authorized" : "denied");
+      if (!granted) {
+        await invoke("open_system_settings", { preferencePane: "Privacy_Accessibility" });
+      }
+    } catch (error) {
+      console.error("[PermissionsStep] Failed to request Accessibility permission:", error);
+      setPermissionStatus("accessibility", "denied");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   const handleFinish = async () => {
     if (isPending) return;
 
@@ -159,6 +182,16 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
             status={permissions.systemAudio}
             isPending={isPending}
             onAction={handleSystemAudioAction}
+          />
+
+          {/* Accessibility is optional but makes focused-app insertion automatic. */}
+          <PermissionRow
+            icon={<CursorArrowRaysIcon />}
+            title="Accessibility"
+            description="Allows Hush to insert finished dictation where you were typing"
+            status={permissions.accessibility}
+            isPending={isPending}
+            onAction={handleAccessibilityAction}
           />
         </div>
 
