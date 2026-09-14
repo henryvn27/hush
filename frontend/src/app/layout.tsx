@@ -148,6 +148,13 @@ export default function RootLayout({
       const message = (event as CustomEvent<{ message?: string }>).detail?.message;
       toast.error('Could not start dictation', {
         description: message || 'Check your local transcription model and microphone settings.',
+        action: {
+          label: 'Open settings',
+          onClick: () => {
+            window.history.pushState({}, '', '/settings');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          },
+        },
       });
     };
 
