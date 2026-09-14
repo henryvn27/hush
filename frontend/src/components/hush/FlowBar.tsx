@@ -195,6 +195,18 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     }
   };
 
+  useEffect(() => {
+    if (!isRecording) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      if (floating && isTauriRuntime()) void emitToMainWithFallback('request-recording-cancel');
+      else window.dispatchEvent(new CustomEvent('request-recording-cancel'));
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [floating, isRecording]);
+
   if (!floating && isTauriRuntime() && !isBrowserQaRuntime()) return null;
   if (!barEnabled || (hiddenUntil && hiddenUntil > Date.now())) return null;
 
