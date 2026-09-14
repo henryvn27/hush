@@ -834,7 +834,7 @@
   }
 
   .hush-flow-orb {
-    @apply hidden;
+    @apply grid size-4 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10;
   }
 
   .hush-flow-orb img { @apply size-full object-cover; }

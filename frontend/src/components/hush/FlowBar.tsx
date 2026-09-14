@@ -234,7 +234,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
         title={flowError ? flowError : isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate`}
       >
         <span className={isLive ? 'hush-flow-orb hush-flow-orb-live' : 'hush-flow-orb'}>
-          <Image src="/hush-mark.png" alt="" width={24} height={24} unoptimized aria-hidden="true" />
+          <Image src="/hush-mark.png" alt="" width={16} height={16} unoptimized aria-hidden="true" />
         </span>
         <span className="hush-flow-copy">
           <span className="hush-flow-kicker">Hush</span>
