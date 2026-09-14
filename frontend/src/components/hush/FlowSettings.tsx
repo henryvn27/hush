@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { ArrowTopRightOnSquareIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, LockClosedIcon, MicrophoneIcon, PlusIcon, ShieldCheckIcon, SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, LockClosedIcon, MicrophoneIcon, PlusIcon, ShieldCheckIcon, SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@base-ui/react/switch';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
@@ -176,6 +176,16 @@ export function FlowSettings() {
     const nextRules = phraseRules.filter((rule) => rule.id !== id);
     setPhraseRules(nextRules);
     writePhraseRules(nextRules);
+  };
+
+  const refreshAudioDevices = async () => {
+    try {
+      const devices = await invoke<FlowAudioDevice[]>('get_audio_devices');
+      setAudioDevices(devices.filter((device) => device.device_type === 'Input'));
+      setMicTestError(null);
+    } catch (error) {
+      setMicTestError(error instanceof Error ? error.message : 'Could not refresh microphone devices.');
+    }
   };
 
   const handleMicChange = async (deviceName: string) => {
@@ -513,6 +523,15 @@ export function FlowSettings() {
                   </button>
                   {isTestingMic && <span className="hush-mic-test-meter" aria-label="Microphone input level"><span style={{ width: String(Math.min(100, Math.round(micLevel * 100))) + '%'  }} /></span>}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => void refreshAudioDevices()}
+                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent transition-colors hover:text-foreground"
+                  aria-label="Refresh microphone devices"
+                >
+                  <ArrowPathIcon className="size-3.5" aria-hidden="true" />
+                  Refresh devices
+                </button>
                 {micTestError && <p className="mt-1.5 text-xs text-[hsl(var(--destructive))]" role="alert">{micTestError}</p>}
               </label>
               <label className="grid gap-1.5 text-xs font-medium text-muted-foreground">
