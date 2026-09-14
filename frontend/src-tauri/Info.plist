@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>meetily</string>
+    <string>hush</string>
     <key>CFBundleIdentifier</key>
     <string>com.meetily.ai</string>
     <key>CFBundleName</key>
