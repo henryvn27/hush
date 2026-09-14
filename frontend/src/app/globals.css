@@ -487,6 +487,10 @@
     @apply mt-2 text-[1.85rem] font-semibold leading-none tracking-[-0.045em] text-foreground sm:text-[2.15rem];
   }
 
+  .hush-hub-subtitle {
+    @apply mt-3 max-w-[30rem] text-sm leading-6 text-muted-foreground;
+  }
+
   .hush-activity-page {
     max-width: 78rem;
   }

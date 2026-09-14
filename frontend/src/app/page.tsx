@@ -75,7 +75,8 @@ export default function DashboardPage() {
       <header className="hush-hub-header">
         <div>
           <p className="app-eyebrow">Hush / local voice desk</p>
-          <h1 className="hush-hub-title">Activity</h1>
+          <h1 className="hush-hub-title">Good to have you back.</h1>
+          <p className="hush-hub-subtitle">Your voice, turned into clear text and kept on this Mac.</p>
         </div>
         <div className="hush-shortcut-note" aria-label="Hands-free shortcut">
           <span className="hush-shortcut-note-label">Hold to dictate</span>
