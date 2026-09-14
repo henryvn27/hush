@@ -45,6 +45,7 @@ pub mod database;
 pub mod groq;
 pub mod identity_migration;
 pub mod notifications;
+pub mod memory;
 pub mod ollama;
 pub mod onboarding;
 pub mod openai;
@@ -1023,6 +1024,10 @@ pub fn run() {
             api::api_save_transcript,
             api::api_import_meetings,
             api::open_meeting_folder,
+            memory::hush_timeline,
+            memory::hush_search,
+            memory::hush_get_event,
+            memory::hush_delete_event,
             api::test_backend_connection,
             api::debug_backend_connection,
             api::open_external_url,

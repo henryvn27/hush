@@ -76,7 +76,18 @@ impl TranscriptsRepository {
             meeting_id
         );
 
-        // Commit the transaction
+        // Mirror completed meetings into the canonical Hush event layer.
+        // Keep the compatibility meeting and canonical event atomic so a
+        // failed index write cannot leave two different local truths.
+        crate::memory::create_event_for_meeting(
+            &mut transaction,
+            &meeting_id,
+            meeting_title,
+            folder_path.as_deref(),
+            transcripts,
+        )
+        .await?;
+
         transaction.commit().await?;
 
         Ok(meeting_id)

@@ -23,6 +23,7 @@ const primaryNavigation = [
   { label: 'Home', href: '/', icon: 'home' },
   { label: 'New dictation', href: '/new-meeting', icon: 'capture' },
   { label: 'History', href: '/meetings', icon: 'library' },
+  { label: 'Timeline', href: '/timeline', icon: 'library' },
   { label: 'Ask your archive', href: '/chat', icon: 'recall' },
 ] as const;
 
