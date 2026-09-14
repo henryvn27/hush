@@ -128,6 +128,7 @@ pub const WEBVIEW_COMMANDS: &[&str] = &[
     "flow_bar_start_recording",
     "start_recording_with_devices_and_meeting",
     "start_retranscription_command",
+    "start_audio_level_monitoring",
     "stop_audio_level_monitoring",
     "stop_recording",
     "toggle_console",
