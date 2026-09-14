@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { RecordingStatus } from '@/contexts/RecordingStateContext';
 import { readShortcutConfig } from './ShortcutRuntime';
+import { LANGUAGES } from '@/constants/languages';
 import { readLastTranscript } from '@/lib/last-transcript';
 
 function formatDuration(value: number | null) {
@@ -29,15 +30,7 @@ function isBrowserQaRuntime() {
   return process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true';
 }
 
-const FLOW_LANGUAGES = [
-  ['auto', 'Auto detect'],
-  ['en', 'English'],
-  ['es', 'Spanish'],
-  ['fr', 'French'],
-  ['de', 'German'],
-  ['ja', 'Japanese'],
-  ['zh', 'Chinese'],
-] as const;
+const FLOW_LANGUAGES = LANGUAGES.map(({ code, name }) => [code, name] as const);
 
 interface FlowAudioDevice { name: string; device_type: 'Input' | 'Output'; }
 interface FlowRecordingPreferences {
