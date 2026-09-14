@@ -19,7 +19,12 @@ const DEFAULT_SHORTCUT: ShortcutConfig = { kind: 'globe', label: 'Globe / Fn' };
 
 export type ShortcutConfig =
   | { kind: 'globe'; label: string }
-  | { kind: 'global'; label: string; shortcut: string };
+  | { kind: 'global'; label: string; shortcut: string; shortcuts?: string[] };
+
+function shortcutBindings(config: ShortcutConfig): string[] {
+  if (config.kind !== 'global') return [];
+  return Array.from(new Set([config.shortcut, ...(config.shortcuts ?? [])].filter(Boolean)));
+}
 
 interface ShortcutEventPayload {
   state?: 'Pressed' | 'Released';
@@ -54,32 +59,36 @@ export function ShortcutRuntime() {
   useEffect(() => {
     if (!isTauriRuntime()) return;
 
-    let activeShortcut: string | null = null;
+    let activeShortcuts: string[] = [];
     let lastAppliedConfig = readShortcutConfig();
 
     const applyShortcut = async (config: ShortcutConfig) => {
-      const previousShortcut = activeShortcut;
+      const previousShortcuts = activeShortcuts;
       const previousConfig = lastAppliedConfig;
       try {
-        if (previousShortcut) await unregister(previousShortcut);
-        activeShortcut = null;
+        await Promise.all(previousShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
+        activeShortcuts = [];
 
-        if (config.kind === 'global') {
-          await register(config.shortcut, () => undefined);
-          activeShortcut = config.shortcut;
+        const nextShortcuts = shortcutBindings(config);
+        for (const shortcut of nextShortcuts) {
+          await register(shortcut, () => undefined);
+          activeShortcuts.push(shortcut);
         }
 
-        window.localStorage.setItem(HUSH_SHORTCUT_RUNTIME_KEY, activeShortcut ?? 'globe');
+        window.localStorage.setItem(HUSH_SHORTCUT_RUNTIME_KEY, activeShortcuts.join(',') || 'globe');
         lastAppliedConfig = config;
       } catch (error) {
         console.error('Failed to register Hush shortcut:', error);
-        if (previousConfig.kind === 'global') {
-          try {
-            await register(previousConfig.shortcut, () => undefined);
-            activeShortcut = previousConfig.shortcut;
-          } catch {
-            activeShortcut = null;
+        await Promise.all(activeShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
+        activeShortcuts = [];
+        const previousBindings = shortcutBindings(previousConfig);
+        try {
+          for (const shortcut of previousBindings) {
+            await register(shortcut, () => undefined);
+            activeShortcuts.push(shortcut);
           }
+        } catch {
+          activeShortcuts = [];
         }
         window.localStorage.setItem(HUSH_SHORTCUT_STORAGE_KEY, JSON.stringify(previousConfig));
         window.dispatchEvent(new CustomEvent('hush-shortcut-rejected', { detail: previousConfig }));
@@ -100,7 +109,7 @@ export function ShortcutRuntime() {
     window.addEventListener('hush-shortcut-change', handleShortcutChange);
     return () => {
       window.removeEventListener('hush-shortcut-change', handleShortcutChange);
-      if (activeShortcut) void unregister(activeShortcut).catch(() => undefined);
+      void Promise.all(activeShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
     };
   }, []);
 

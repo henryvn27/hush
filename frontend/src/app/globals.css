@@ -1013,6 +1013,14 @@
     @apply border-dashed border-border-strong;
   }
 
+  .hush-settings-shortcut-alternates {
+    @apply border-b border-border bg-background/35 px-4 py-3.5 sm:px-5;
+  }
+
+  .hush-settings-shortcut-alternates kbd {
+    @apply font-mono text-[0.6875rem];
+  }
+
   .hush-onboarding-welcome {
     @apply grid max-w-[62rem] overflow-hidden rounded-[0.85rem] border border-border bg-card shadow-[0_16px_40px_hsl(var(--shadow-color)/0.08)] lg:grid-cols-[minmax(0,1fr)_minmax(22rem,1fr)];
   }

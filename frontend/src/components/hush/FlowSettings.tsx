@@ -74,6 +74,7 @@ export function FlowSettings() {
   const [insertAtCursor, setInsertAtCursor] = useState(false);
   const [shortcut, setShortcut] = useState<ShortcutConfig>(() => readShortcutConfig());
   const [isCapturingShortcut, setIsCapturingShortcut] = useState(false);
+  const [isCapturingAdditionalShortcut, setIsCapturingAdditionalShortcut] = useState(false);
   const [phraseRules, setPhraseRules] = useState<HushPhraseRule[]>([]);
   const [phraseKind, setPhraseKind] = useState<HushPhraseRuleKind>('dictionary');
   const [phraseTrigger, setPhraseTrigger] = useState('');
@@ -187,6 +188,7 @@ export function FlowSettings() {
   const chooseShortcut = (config: ShortcutConfig) => {
     setShortcut(config);
     setIsCapturingShortcut(false);
+    setIsCapturingAdditionalShortcut(false);
     saveShortcutConfig(config);
   };
 
@@ -194,6 +196,25 @@ export function FlowSettings() {
     event.preventDefault();
     const captured = shortcutDisplayFromKey(event);
     if (captured) chooseShortcut(captured);
+  };
+
+  const handleAdditionalShortcutCapture = (event: KeyboardEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const captured = shortcutDisplayFromKey(event);
+    if (!captured || shortcut.kind !== 'global') return;
+    if (captured.shortcut === shortcut.shortcut || shortcut.shortcuts?.includes(captured.shortcut)) return;
+    chooseShortcut({
+      ...shortcut,
+      shortcuts: [...(shortcut.shortcuts ?? []), captured.shortcut],
+    });
+  };
+
+  const removeAdditionalShortcut = (binding: string) => {
+    if (shortcut.kind !== 'global') return;
+    chooseShortcut({
+      ...shortcut,
+      shortcuts: (shortcut.shortcuts ?? []).filter((item) => item !== binding),
+    });
   };
 
   const selectedPreset = PRESET_SHORTCUTS.find((preset) => (
@@ -254,6 +275,45 @@ export function FlowSettings() {
           </span>
         </button>
       </div>
+
+      {shortcut.kind === 'global' && (
+        <div className="hush-settings-shortcut-alternates" aria-label="Additional activation shortcuts">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium">Additional shortcuts</p>
+              <p className="mt-1 text-xs text-muted-foreground">Keep up to three alternate bindings for different keyboards.</p>
+            </div>
+            {(shortcut.shortcuts ?? []).length < 3 && (
+              <button
+                type="button"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-secondary"
+                onClick={() => setIsCapturingAdditionalShortcut(true)}
+                onKeyDown={handleAdditionalShortcutCapture}
+              >
+                <PlusIcon className="size-3.5" aria-hidden="true" />
+                {isCapturingAdditionalShortcut ? 'Press keys...' : 'Add shortcut'}
+              </button>
+            )}
+          </div>
+          {(shortcut.shortcuts ?? []).length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {shortcut.shortcuts?.map((binding) => (
+                <button
+                  key={binding}
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-1 text-xs text-foreground"
+                  onClick={() => removeAdditionalShortcut(binding)}
+                  title="Remove alternate shortcut"
+                >
+                  <kbd>{binding.replaceAll('+', ' + ')}</kbd>
+                  <span aria-hidden="true">x</span>
+                  <span className="sr-only">Remove</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="hush-settings-flow-row">
         <div>
