@@ -278,10 +278,12 @@ export function useRecordingStop(
           last_transcript: freshTranscripts.length > 0 ? freshTranscripts[freshTranscripts.length - 1].text.substring(0, 30) + '...' : 'none',
         });
 
+        let deliveredTranscriptText = "";
         const transcriptText = freshTranscripts
           .map((transcript) => transcript.text.trim())
           .filter(Boolean)
           .join(" ");
+        deliveredTranscriptText = transcriptText;
         await deliverTranscriptToFocusedApp(transcriptText);
 
         try {
@@ -432,8 +434,10 @@ export function useRecordingStop(
         } catch (saveError) {
           console.error('Failed to save meeting to database:', saveError);
           setStatus(RecordingStatus.ERROR, saveError instanceof Error ? saveError.message : 'Unknown error');
-          toast.error('Failed to save meeting', {
-            description: saveError instanceof Error ? saveError.message : 'Unknown error'
+          toast.error(deliveredTranscriptText ? 'History needs recovery' : 'Failed to save meeting', {
+            description: deliveredTranscriptText
+              ? 'Your dictation was preserved for Paste last dictation, but Hush could not save it to history yet.'
+              : saveError instanceof Error ? saveError.message : 'Unknown error'
           });
           throw saveError;
         }
