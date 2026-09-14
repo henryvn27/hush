@@ -30,11 +30,17 @@ function isBrowserQaRuntime() {
 }
 
 async function startRecordingFromFlowBar() {
+  if (!isTauriRuntime()) {
+    window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
+    return;
+  }
+
   try {
     await invoke('flow_bar_start_recording');
   } catch (error) {
-    console.warn('[Hush Flow Bar] Native start command failed; falling back to main-window event', error);
-    await emitToMainWithFallback('request-recording-toggle', { state: 'Pressed' });
+    const message = error instanceof Error ? error.message : 'Hush could not start local dictation.';
+    console.warn('[Hush Flow Bar] Native start command failed', error);
+    await emitToMainWithFallback('hush-flow-bar-error', { message });
   }
 }
 

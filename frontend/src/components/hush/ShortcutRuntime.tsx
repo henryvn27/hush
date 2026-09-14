@@ -193,6 +193,9 @@ export function ShortcutActivationBridge({ showOnboarding }: { showOnboarding: b
     const unlistenPasteLast = listen('request-paste-last', () => {
       window.dispatchEvent(new CustomEvent('request-paste-last'));
     });
+    const unlistenFlowBarError = listen<{ message?: string }>('hush-flow-bar-error', (event) => {
+      window.dispatchEvent(new CustomEvent('hush-flow-bar-error', { detail: event.payload }));
+    });
 
     const unlistenGlobe = listen<ShortcutEventPayload>('request-globe-dictation', (event) => {
       if (selectedShortcutKind.current !== 'globe') return;
@@ -227,6 +230,7 @@ export function ShortcutActivationBridge({ showOnboarding }: { showOnboarding: b
       unlistenStop.then((cleanup) => cleanup());
       unlistenCancel.then((cleanup) => cleanup());
       unlistenPasteLast.then((cleanup) => cleanup());
+      unlistenFlowBarError.then((cleanup) => cleanup());
       unlistenGlobe.then((cleanup) => cleanup());
     };
   }, [blockForOnboarding, startRecording, stopRecording, toggleRecording]);

@@ -15,10 +15,9 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBarWindow, /flowBarWindow\.show\(\)/);
   const flowBar = readFileSync(new URL('../../src/components/hush/FlowBar.tsx', import.meta.url), 'utf8');
   assert.match(flowBar, /emitTo\('main', eventName/);
-  assert.match(flowBar, /emitToMainWithFallback\('request-recording-toggle'/);
+  assert.match(flowBar, /emitToMainWithFallback\('hush-flow-bar-error'/);
   assert.match(flowBar, /if \(isRecording \|\| isBusy\) return/);
   assert.match(flowBar, /Dictation in progress; use Stop or Cancel/);
-  assert.doesNotMatch(flowBar, /isRecording \? emitToMainWithFallback\('request-recording-toggle'/);
   assert.match(flowBar, /startDragging\(\)/);
   assert.match(flowBar, /target\?\.closest\('button'\)/);
   assert.match(flowBar, /Copy last dictation/);

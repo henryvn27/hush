@@ -144,8 +144,19 @@ export default function RootLayout({
       }
     };
 
+    const handleFlowBarError = (event: Event) => {
+      const message = (event as CustomEvent<{ message?: string }>).detail?.message;
+      toast.error('Could not start dictation', {
+        description: message || 'Check your local transcription model and microphone settings.',
+      });
+    };
+
     window.addEventListener('request-paste-last', pasteLastDictation);
-    return () => window.removeEventListener('request-paste-last', pasteLastDictation);
+    window.addEventListener('hush-flow-bar-error', handleFlowBarError);
+    return () => {
+      window.removeEventListener('request-paste-last', pasteLastDictation);
+      window.removeEventListener('hush-flow-bar-error', handleFlowBarError);
+    };
   }, [])
 
   useEffect(() => {
