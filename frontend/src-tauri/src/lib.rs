@@ -115,6 +115,29 @@ fn install_globe_key_monitor<R: Runtime>(app: &AppHandle<R>) {
 /// Deliver a finished local transcript to the app that was focused when the
 /// user started dictating. macOS requires Accessibility permission for the
 /// synthetic paste event; the clipboard write remains the explicit fallback.
+#[cfg(target_os = "macos")]
+fn read_non_empty_text_clipboard() -> Option<String> {
+    let output = Command::new("pbpaste").output().ok()?;
+    if !output.status.success() || output.stdout.is_empty() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+#[cfg(target_os = "macos")]
+fn write_text_clipboard(text: &str) -> Result<(), String> {
+    let mut clipboard = Command::new("pbcopy")
+        .stdin(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("Could not open the macOS clipboard: {error}"))?;
+    clipboard.stdin.as_mut().ok_or_else(|| "Could not access the macOS clipboard pipe".to_string())?.write_all(text.as_bytes()).map_err(|error| format!("Could not write the transcript to the clipboard: {error}"))?;
+    let status = clipboard.wait().map_err(|error| format!("Could not finish the macOS clipboard write: {error}"))?;
+    if !status.success() {
+        return Err("macOS rejected the clipboard write".to_string());
+    }
+    Ok(())
+}
+
 #[tauri::command]
 async fn paste_text_at_cursor(text: String) -> Result<(), String> {
     if text.trim().is_empty() {
@@ -127,24 +150,9 @@ async fn paste_text_at_cursor(text: String) -> Result<(), String> {
             return Err("Hush needs macOS Accessibility permission to insert into the focused app".to_string());
         }
 
-        let mut clipboard = Command::new("pbcopy")
-            .stdin(Stdio::piped())
-            .spawn()
-            .map_err(|error| format!("Could not open the macOS clipboard: {error}"))?;
-
-        clipboard
-            .stdin
-            .as_mut()
-            .ok_or_else(|| "Could not access the macOS clipboard pipe".to_string())?
-            .write_all(text.as_bytes())
-            .map_err(|error| format!("Could not write the transcript to the clipboard: {error}"))?;
-
-        let status = clipboard
-            .wait()
-            .map_err(|error| format!("Could not finish the macOS clipboard write: {error}"))?;
-        if !status.success() {
-            return Err("macOS rejected the clipboard write".to_string());
-        }
+        // Preserve text clipboard contents when possible; non-text data is left untouched.
+        let previous_clipboard = read_non_empty_text_clipboard();
+        write_text_clipboard(text.trim())?;
 
         std::thread::sleep(Duration::from_millis(70));
 
@@ -162,6 +170,13 @@ async fn paste_text_at_cursor(text: String) -> Result<(), String> {
             .map_err(|_| "Could not create the paste release event".to_string())?;
         key_up.set_flags(CGEventFlags::CGEventFlagCommand);
         key_up.post(CGEventTapLocation::HID);
+
+        if let Some(previous_clipboard) = previous_clipboard {
+            std::thread::sleep(Duration::from_millis(90));
+            if let Err(error) = write_text_clipboard(&previous_clipboard) {
+                log::warn!("Could not restore the previous text clipboard after insertion: {}", error);
+            }
+        }
 
         Ok(())
     }

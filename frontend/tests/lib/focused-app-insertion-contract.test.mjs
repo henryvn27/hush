@@ -31,4 +31,8 @@ test('focused-app insertion has a truthful native and clipboard path', async () 
   assert.match(flowSettings, /request_accessibility_permission/);
   assert.match(nativeLib, /fn check_accessibility_permission/);
   assert.match(nativeLib, /fn request_accessibility_permission/);
+  assert.match(nativeLib, /read_non_empty_text_clipboard/);
+  assert.match(nativeLib, /write_text_clipboard/);
+  assert.match(nativeLib, /previous_clipboard/);
+  assert.match(nativeLib, /Could not restore the previous text clipboard/);
 });
