@@ -426,8 +426,12 @@
   }
 
   .dark .hush-sidebar {
-    background: hsl(264 12% 96% / 0.98);
-    box-shadow: 1px 0 0 hsl(264 20% 20% / 0.04);
+    --sidebar-foreground: 264 8% 94%;
+    --sidebar-muted: 264 6% 67%;
+    --sidebar-hover: 264 10% 21%;
+    --sidebar-border: 264 8% 24%;
+    background: hsl(264 10% 14% / 0.98);
+    box-shadow: 1px 0 0 hsl(0 0% 100% / 0.04);
   }
 
   .hush-sidebar-section-label {
@@ -444,7 +448,7 @@
   }
 
   .dark .hush-sidebar-nav-button[aria-current="page"] {
-    background: hsl(264 22% 92%) !important;
+    background: hsl(264 18% 24%) !important;
   }
 
   .hush-sidebar-nav-button[aria-current="page"]::before {
