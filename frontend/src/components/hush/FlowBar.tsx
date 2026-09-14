@@ -261,7 +261,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
 
   return (
     <aside
-      className={floating ? 'hush-flow-bar hush-flow-bar-floating group' : 'hush-flow-bar group'}
+      className={['hush-flow-bar', floating && 'hush-flow-bar-floating', (isRecording || isBusy) && 'hush-flow-bar-recording', 'group'].filter(Boolean).join(' ')}
       aria-label="Hush Flow Bar"
       onContextMenu={(event) => {
         event.preventDefault();
