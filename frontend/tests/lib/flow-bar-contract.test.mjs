@@ -29,6 +29,7 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBarWindow, /currentMonitor\(\)/);
   assert.match(flowBarWindow, /setPosition\(new PhysicalPosition/);
   assert.ok(((shortcutRuntime.match(/hush-toggle-recording/g) || []).length) >= 2);
+  assert.match(recordingStop, /window\.localStorage\.getItem\("hush-insert-at-cursor"\) !== "false"/);
   assert.match(recordingStop, /History needs recovery/);
   assert.match(recordingStop, /deliverTranscriptToFocusedApp\(transcriptText\)[\s\S]*storageService\.saveMeeting/);
   assert.match(nativeSource, /current_monitor\(\)[\s\S]*primary_monitor\(\)/);

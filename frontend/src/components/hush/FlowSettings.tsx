@@ -90,7 +90,7 @@ export function FlowSettings() {
 
   useEffect(() => {
     setShowFlowBar(window.localStorage.getItem(FLOW_BAR_DISABLED_KEY) !== 'true');
-    setInsertAtCursor(window.localStorage.getItem(INSERT_AT_CURSOR_KEY) === 'true');
+    setInsertAtCursor(window.localStorage.getItem(INSERT_AT_CURSOR_KEY) !== 'false');
     setPhraseRules(readPhraseRules());
 
     void Promise.all([

@@ -158,7 +158,7 @@ export function useRecordingStart(
 
   const captureFocusedAppIfEnabled = useCallback(async () => {
     if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) return;
-    if (window.localStorage.getItem('hush-insert-at-cursor') !== 'true') return;
+    if (window.localStorage.getItem('hush-insert-at-cursor') === 'false') return;
 
     try {
       await invoke('capture_focused_app');

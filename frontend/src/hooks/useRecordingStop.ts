@@ -22,7 +22,7 @@ type SummaryStatus = 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'c
 async function deliverTranscriptToFocusedApp(transcriptText: string) {
   saveLastTranscript(transcriptText);
   const shouldInsertAtCursor = typeof window !== "undefined"
-    && window.localStorage.getItem("hush-insert-at-cursor") === "true";
+    && window.localStorage.getItem("hush-insert-at-cursor") !== "false";
 
   if (!shouldInsertAtCursor || !transcriptText) return;
 
