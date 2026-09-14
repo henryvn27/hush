@@ -29,6 +29,18 @@ function isBrowserQaRuntime() {
   return process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true';
 }
 
+function formatFlowBarStartError(error: unknown) {
+  const raw = error instanceof Error ? error.message : String(error || '');
+  const normalized = raw.toLowerCase();
+  if (normalized.includes('microphone') || normalized.includes('no default microphone') || normalized.includes('no input')) {
+    return 'No microphone is available. Connect one or choose a different input in Settings.';
+  }
+  if (normalized.includes('model') || normalized.includes('transcri') || normalized.includes('parakeet') || normalized.includes('whisper')) {
+    return 'Your local transcription model is not ready. Open Settings to repair or download it.';
+  }
+  return raw || 'Hush could not start local dictation. Check Settings and try again.';
+}
+
 async function startRecordingFromFlowBar() {
   if (!isTauriRuntime()) {
     window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
@@ -38,7 +50,7 @@ async function startRecordingFromFlowBar() {
   try {
     await invoke('flow_bar_start_recording');
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Hush could not start local dictation.';
+    const message = formatFlowBarStartError(error);
     console.warn('[Hush Flow Bar] Native start command failed', error);
     window.dispatchEvent(new CustomEvent('hush-flow-bar-error', { detail: { message } }));
     await emitToMainWithFallback('hush-flow-bar-error', { message });
