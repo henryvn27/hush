@@ -1,5 +1,5 @@
 [package]
-name = "meetily"
+name = "hush"
 version = "0.5.0"
 description = "Hush local-first desktop voice and meeting workspace"
 authors = ["Sujith S"]

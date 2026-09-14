@@ -61,7 +61,7 @@ pub async fn start_monitoring<R: Runtime>(
     let (stop_sender, stop_receiver) = mpsc::channel();
     let (ready_sender, ready_receiver) = mpsc::sync_channel(1);
     let thread = std::thread::Builder::new()
-        .name("meetily-audio-level-monitor".to_string())
+        .name("hush-audio-level-monitor".to_string())
         .spawn(move || run_monitor(app_handle, device_names, stop_receiver, ready_sender))
         .context("Failed to start the microphone level monitor thread")?;
 

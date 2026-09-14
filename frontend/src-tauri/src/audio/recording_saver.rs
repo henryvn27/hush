@@ -604,7 +604,7 @@ mod tests {
 
     fn unique_test_folder(name: &str) -> PathBuf {
         std::env::temp_dir().join(format!(
-            "meetily-recording-saver-{}-{}-{}",
+            "hush-recording-saver-{}-{}-{}",
             name,
             std::process::id(),
             chrono::Utc::now().timestamp_nanos_opt().unwrap_or_default()
