@@ -296,8 +296,8 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           }
         }}
         disabled={isBusy}
-        aria-label={flowError ? 'Open Hush settings to fix dictation' : isRecording ? 'Dictation in progress; use Stop or Cancel' : `Hold ${shortcutLabel} to dictate`}
-        title={flowError ? flowError : isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate`}
+        aria-label={flowError ? 'Open Hush settings to fix dictation' : isRecording ? 'Dictation in progress; use Stop or Cancel' : `Hold ${shortcutLabel}`}
+        title={flowError ? flowError : isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate; double-press for hands-free`}
       >
         <span className={isLive ? 'hush-flow-orb hush-flow-orb-live' : 'hush-flow-orb'}>
           <Image src="/hush-mark.png" alt="" width={16} height={16} unoptimized aria-hidden="true" />
@@ -306,7 +306,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           <span className="hush-flow-kicker">Hush</span>
           <span className="hush-flow-status">
             <span className={flowError ? 'hush-flow-status-dot hush-flow-status-dot-error' : isLive ? 'hush-flow-status-dot hush-flow-status-dot-live' : 'hush-flow-status-dot'} aria-hidden="true" />
-            {flowError ? statusLabel : isRecording ? statusLabel : `Hold ${shortcutLabel} to dictate`}
+            {flowError ? statusLabel : isRecording ? statusLabel : `Hold ${shortcutLabel}`}
             {isRecording && <span className="hush-flow-time">{formatDuration(recordingDuration)}</span>}
           </span>
         </span>
