@@ -162,6 +162,20 @@ export function FlowSettings() {
     }
   };
 
+  const requestAccessibilityPermission = async () => {
+    try {
+      const granted = await invoke<boolean>('request_accessibility_permission');
+      setAccessibilityReady(granted);
+      if (granted) {
+        toast.success('Automatic paste is ready');
+        return;
+      }
+    } catch (error) {
+      console.warn('Could not request Accessibility permission:', error);
+    }
+    await openAccessibilitySettings();
+  };
+
   const openAccessibilitySettings = async () => {
     try {
       await invoke('open_system_settings', { preferencePane: 'Privacy_Accessibility' });
@@ -345,10 +359,10 @@ export function FlowSettings() {
           {insertAtCursor && (
             <button
               type="button"
-              onClick={() => void openAccessibilitySettings()}
+              onClick={() => void requestAccessibilityPermission()}
               className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-foreground"
             >
-              Open Accessibility settings
+              Allow automatic paste
               <ArrowTopRightOnSquareIcon className="size-3.5" aria-hidden="true" />
             </button>
           )}

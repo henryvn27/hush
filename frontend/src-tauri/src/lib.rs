@@ -75,6 +75,7 @@ static CAPTURED_FRONTMOST_PID: AtomicI32 = AtomicI32::new(0);
 #[cfg(target_os = "macos")]
 unsafe extern "C" {
     fn CGPreflightPostEventAccess() -> bool;
+    fn CGRequestPostEventAccess() -> bool;
 }
 
 #[cfg(target_os = "macos")]
@@ -242,6 +243,18 @@ fn check_accessibility_permission() -> bool {
     #[cfg(target_os = "macos")]
     {
         return unsafe { CGPreflightPostEventAccess() };
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    false
+}
+
+/// Request macOS Accessibility access for the synthetic paste event used for focused-app insertion.
+#[tauri::command]
+fn request_accessibility_permission() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        return unsafe { CGRequestPostEventAccess() };
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -826,6 +839,7 @@ pub fn run() {
             capture_focused_app,
             focus_captured_app,
             check_accessibility_permission,
+            request_accessibility_permission,
             is_recording,
             get_transcription_status,
             read_audio_file,

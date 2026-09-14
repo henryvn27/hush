@@ -26,7 +26,9 @@ test('focused-app insertion has a truthful native and clipboard path', async () 
   assert.match(recordingStop, /insertIntoFocusedApp/);
   assert.match(recordingStop, /Transcript copied instead/);
   assert.match(flowSettings, /open_system_settings/);
-  assert.match(flowSettings, /Open Accessibility settings/);
+  assert.match(flowSettings, /Allow automatic paste/);
   assert.match(flowSettings, /check_accessibility_permission/);
+  assert.match(flowSettings, /request_accessibility_permission/);
   assert.match(nativeLib, /fn check_accessibility_permission/);
+  assert.match(nativeLib, /fn request_accessibility_permission/);
 });
