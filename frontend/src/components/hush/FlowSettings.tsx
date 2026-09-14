@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { KeyboardEvent } from 'react';
-import { ArrowPathIcon, ArrowTopRightOnSquareIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, LockClosedIcon, MicrophoneIcon, PlusIcon, ShieldCheckIcon, SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useEffect, useRef, useState } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon, ArrowUpTrayIcon, BookOpenIcon, CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, LockClosedIcon, MicrophoneIcon, PlusIcon, ShieldCheckIcon, SparklesIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@base-ui/react/switch';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
@@ -33,6 +33,55 @@ const FLOW_LANGUAGES = [
   ['ja', 'Japanese'],
   ['zh', 'Chinese'],
 ] as const;
+
+function parsePhraseImport(text: string): { rows: Array<Pick<HushPhraseRule, 'kind' | 'trigger' | 'replacement'>>; rejected: number } {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return { rows: [], rejected: 0 };
+
+  const delimiter = lines.find((line) => line.includes('\t')) ? '\t' : ',';
+  const parseLine = (line: string) => {
+    const fields: string[] = [];
+    let field = '';
+    let quoted = false;
+    for (let index = 0; index < line.length; index += 1) {
+      const character = line[index];
+      if (character === '"') {
+        if (quoted && line[index + 1] === '"') { field += '"'; index += 1; }
+        else quoted = !quoted;
+      } else if (character === delimiter && !quoted) {
+        fields.push(field.trim());
+        field = '';
+      } else {
+        field += character;
+      }
+    }
+    fields.push(field.trim());
+    return fields;
+  };
+
+  const parsed = lines.map(parseLine);
+  const first = parsed[0].map((field) => field.toLowerCase());
+  const hasHeader = first.some((field) => ['kind', 'type', 'trigger', 'phrase', 'replacement'].includes(field));
+  const data = hasHeader ? parsed.slice(1) : parsed;
+  const rows: Array<Pick<HushPhraseRule, 'kind' | 'trigger' | 'replacement'>> = [];
+  let rejected = 0;
+
+  for (const fields of data) {
+    const normalized = fields.map((field) => field.trim());
+    let kind: HushPhraseRuleKind = 'dictionary';
+    let trigger = normalized[0] ?? '';
+    let replacement = normalized[1] ?? '';
+    if (normalized.length >= 3 && (normalized[0] === 'dictionary' || normalized[0] === 'snippet')) {
+      kind = normalized[0];
+      trigger = normalized[1] ?? '';
+      replacement = normalized[2] ?? '';
+    }
+    if (!trigger || !replacement || trigger.length > 160 || replacement.length > 2_000) { rejected += 1; continue; }
+    rows.push({ kind, trigger, replacement });
+  }
+
+  return { rows, rejected };
+}
 
 const FLOW_BAR_DISABLED_KEY = 'hush-flow-bar-disabled';
 const INSERT_AT_CURSOR_KEY = 'hush-insert-at-cursor';
@@ -81,6 +130,7 @@ export function FlowSettings() {
   const [phraseKind, setPhraseKind] = useState<HushPhraseRuleKind>('dictionary');
   const [phraseTrigger, setPhraseTrigger] = useState('');
   const [phraseReplacement, setPhraseReplacement] = useState('');
+  const phraseImportRef = useRef<HTMLInputElement>(null);
   const [audioDevices, setAudioDevices] = useState<FlowAudioDevice[]>([]);
   const [recordingPreferences, setRecordingPreferences] = useState<FlowRecordingPreferences | null>(null);
   const [isSavingMic, setIsSavingMic] = useState(false);
@@ -177,6 +227,35 @@ export function FlowSettings() {
     const nextRules = phraseRules.filter((rule) => rule.id !== id);
     setPhraseRules(nextRules);
     writePhraseRules(nextRules);
+  };
+
+  const handlePhraseImport = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const { rows, rejected } = parsePhraseImport(await file.text());
+      const existing = new Set(phraseRules.map((rule) => rule.kind + ":" + rule.trigger.toLocaleLowerCase()));
+      const imported = rows.filter((row) => {
+        const key = row.kind + ":" + row.trigger.toLocaleLowerCase();
+        if (existing.has(key)) return false;
+        existing.add(key);
+        return true;
+      }).map((row, index) => ({ ...row, id: "import-" + Date.now() + "-" + index }));
+      const nextRules = [...phraseRules, ...imported];
+      setPhraseRules(nextRules);
+      writePhraseRules(nextRules);
+      const skipped = rows.length - imported.length;
+      toast.success(imported.length ? "Imported " + imported.length + " phrase" + (imported.length === 1 ? "" : "s") : "No new phrases imported", {
+        description: [
+          skipped ? skipped + " duplicate" + (skipped === 1 ? "" : "s") + " skipped" : "",
+          rejected ? rejected + " invalid row" + (rejected === 1 ? "" : "s") + " skipped" : "",
+        ].filter(Boolean).join(" · ") || "Your local vocabulary is up to date.",
+      });
+    } catch (error) {
+      toast.error("Could not import phrases", { description: error instanceof Error ? error.message : "Choose a CSV, TSV, or plain text file." });
+    }
   };
 
   const refreshAudioDevices = async () => {
@@ -431,8 +510,26 @@ export function FlowSettings() {
         <div className="flex min-w-0 items-start gap-3">
           <span className="hush-settings-flow-row-icon" aria-hidden="true"><BookOpenIcon className="size-4" /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">Your words and phrases</p>
-            <p className="mt-1 text-xs text-muted-foreground">Correct names locally or expand a short trigger before text is saved or inserted.</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-medium">Your words and phrases</p>
+              <button
+                type="button"
+                onClick={() => phraseImportRef.current?.click()}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-secondary"
+              >
+                <ArrowUpTrayIcon className="size-3.5" aria-hidden="true" />
+                Import list
+              </button>
+              <input
+                ref={phraseImportRef}
+                type="file"
+                accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+                onChange={(event) => void handlePhraseImport(event)}
+                className="sr-only"
+                aria-label="Import dictionary and snippet list"
+              />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Correct names locally or expand a short trigger before text is saved or inserted. Import a CSV or TSV to add many at once.</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-[8rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
               <select
                 value={phraseKind}
