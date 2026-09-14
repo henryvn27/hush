@@ -22,6 +22,7 @@ export interface RecordingReadinessInput {
   selectedMicrophone: string | null;
   selectedSystemAudio: string | null;
   modelState: 'checking' | 'ready' | 'downloading' | 'missing' | 'error';
+  transcriptionProvider?: string;
   modelError: string | null;
 }
 
@@ -30,12 +31,15 @@ function selectedDeviceDetail(selected: string | null, fallback: string): string
 }
 
 export function deriveRecordingReadiness(input: RecordingReadinessInput): RecordingReadiness {
+  const transcriptionLabel = input.transcriptionProvider === 'parakeet' || input.transcriptionProvider === 'localWhisper'
+    ? 'Local transcription'
+    : 'Transcription';
   if (input.isChecking) {
     return {
       items: [
         { id: 'microphone', label: 'Microphone', state: 'checking', detail: 'Checking available input devices...' },
         { id: 'system-audio', label: 'System audio', state: 'checking', detail: 'Checking available output capture...' },
-        { id: 'transcription', label: 'Local transcription', state: 'checking', detail: 'Checking the configured local model...' },
+        { id: 'transcription', label: transcriptionLabel, state: 'checking', detail: 'Checking the configured transcription model...' },
       ],
       canStart: false,
       blockReason: 'Checking recording setup',
@@ -106,28 +110,32 @@ export function deriveRecordingReadiness(input: RecordingReadinessInput): Record
       case 'ready':
         return {
           id: 'transcription',
-          label: 'Local transcription',
+          label: transcriptionLabel,
           state: 'ready',
-          detail: 'A local Parakeet model is available.',
+          detail: input.transcriptionProvider === 'parakeet'
+            ? 'The selected local Parakeet model is available.'
+            : input.transcriptionProvider === 'localWhisper'
+              ? 'The selected local Whisper model is available.'
+              : 'The selected transcription provider is ready.',
         };
       case 'downloading':
         return {
           id: 'transcription',
-          label: 'Local transcription',
+          label: transcriptionLabel,
           state: 'blocked',
           detail: 'The transcription model is still downloading.',
         };
       case 'missing':
         return {
           id: 'transcription',
-          label: 'Local transcription',
+          label: transcriptionLabel,
           state: 'blocked',
           detail: 'Download a transcription model before recording.',
         };
       case 'error':
         return {
           id: 'transcription',
-          label: 'Local transcription',
+          label: transcriptionLabel,
           state: 'error',
       detail: input.modelError || 'Hush could not verify the local transcription model.',
         };
@@ -135,9 +143,9 @@ export function deriveRecordingReadiness(input: RecordingReadinessInput): Record
       default:
         return {
           id: 'transcription',
-          label: 'Local transcription',
+          label: transcriptionLabel,
           state: 'checking',
-          detail: 'Checking the configured local model...',
+          detail: 'Checking the configured transcription model...',
         };
     }
   })();

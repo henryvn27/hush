@@ -58,4 +58,12 @@ const checking = deriveRecordingReadiness({ ...base, isChecking: true });
 assert.equal(checking.canStart, false);
 assert.equal(checking.items.every(item => item.state === 'checking'), true);
 
+const remoteProvider = deriveRecordingReadiness({ ...base, transcriptionProvider: 'openai' });
+assert.equal(remoteProvider.items[2].label, 'Transcription');
+assert.equal(remoteProvider.items[2].detail, 'The selected transcription provider is ready.');
+
+const whisperProvider = deriveRecordingReadiness({ ...base, transcriptionProvider: 'localWhisper' });
+assert.equal(whisperProvider.items[2].label, 'Local transcription');
+assert.equal(whisperProvider.items[2].detail, 'The selected local Whisper model is available.');
+
 console.log('recording-readiness tests passed');

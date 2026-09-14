@@ -6,15 +6,15 @@ import {
 } from '@/lib/recording-readiness';
 import { withTimeout } from '@/lib/with-timeout';
 import type { SelectedDevices } from '@/components/DeviceSelection';
+import { useConfig } from '@/contexts/ConfigContext';
+import type { ModelInfo as WhisperModelInfo } from '@/lib/whisper';
+import type { ParakeetModelInfo } from '@/lib/parakeet';
 
 interface AudioDevice {
   name: string;
   device_type: 'Input' | 'Output';
 }
 
-interface ParakeetModel {
-  status?: string | Record<string, unknown>;
-}
 
 interface ReadinessSnapshot {
   isChecking: boolean;
@@ -34,13 +34,14 @@ const initialSnapshot: ReadinessSnapshot = {
   modelError: null,
 };
 
-function isDownloadingModel(model: ParakeetModel): boolean {
+function isDownloadingModel(model: { status?: string | Record<string, unknown> }): boolean {
   if (model.status === 'Downloading') return true;
   return Boolean(model.status && typeof model.status === 'object' && 'Downloading' in model.status);
 }
 
 export function useRecordingReadiness(selectedDevices: SelectedDevices) {
   const [snapshot, setSnapshot] = useState<ReadinessSnapshot>(initialSnapshot);
+  const { transcriptModelConfig } = useConfig();
 
   const refresh = useCallback(async () => {
     setSnapshot(initialSnapshot);
@@ -56,18 +57,27 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
         'Audio-device check timed out. Check macOS audio permissions, then try again.',
       ),
       withTimeout((async () => {
-        await invoke('parakeet_init');
-        const hasAvailableModels = await invoke<boolean>('parakeet_has_available_models');
-        if (hasAvailableModels) {
+        const { provider, model } = transcriptModelConfig;
+        if (provider !== 'parakeet' && provider !== 'localWhisper') {
           return { state: 'ready' as const, error: null };
         }
 
-        const models = await invoke<ParakeetModel[]>('parakeet_get_available_models');
+        const models = provider === 'parakeet'
+          ? await (async () => {
+              await invoke('parakeet_init');
+              return invoke<ParakeetModelInfo[]>('parakeet_get_available_models');
+            })()
+          : await invoke<WhisperModelInfo[]>('whisper_get_available_models');
+        const selected = models.find((item) => item.name === model);
+        if (selected?.status === 'Available') {
+          return { state: 'ready' as const, error: null };
+        }
+
         return {
           state: models.some(isDownloadingModel) ? 'downloading' as const : 'missing' as const,
           error: null,
         };
-      })(), 'Local-model check timed out. Restart Hush, then try again.'),
+      })(), 'Transcription-model check timed out. Restart Hush, then try again.'),
     ]);
 
     const audioDevices = audioResult.status === 'fulfilled' ? audioResult.value : [];
@@ -91,7 +101,7 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
       modelState,
       modelError,
     });
-  }, [selectedDevices.micDevice, selectedDevices.systemDevice]);
+  }, [selectedDevices.micDevice, selectedDevices.systemDevice, transcriptModelConfig]);
 
   useEffect(() => {
     void refresh();
@@ -99,9 +109,10 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
 
   const readiness: RecordingReadiness = useMemo(() => deriveRecordingReadiness({
     ...snapshot,
+    transcriptionProvider: transcriptModelConfig.provider,
     selectedMicrophone: selectedDevices.micDevice,
     selectedSystemAudio: selectedDevices.systemDevice,
-  }), [selectedDevices.micDevice, selectedDevices.systemDevice, snapshot]);
+  }), [selectedDevices.micDevice, selectedDevices.systemDevice, snapshot, transcriptModelConfig.provider]);
 
   return {
     ...readiness,
