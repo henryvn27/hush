@@ -4,16 +4,10 @@
   "runs": [
     {"number":1,"candidate":"Eliminate Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","baselineIpcCalls":101,"optimizedIpcCalls":1,"reductionPercent":99.01,"commit":"35a08b8"},
     {"number":2,"candidate":"Batch recovery checkpoint availability checks","verdict":"PROVEN","baselineIpcCalls":100,"optimizedIpcCalls":1,"reductionPercent":99,"commit":"11a10c5"},
-    {
-      "number":3,
-      "candidate":"Reuse model list during blocked recording-start readiness checks",
-      "verdict":"PROVEN",
-      "benchmark":{"warmups":2,"measuredIterations":7,"whisper":{"baselineModelIpcCalls":2,"optimizedModelIpcCalls":1,"reductionPercent":50},"parakeet":{"baselineModelIpcCalls":3,"optimizedModelIpcCalls":2,"reductionPercent":33.33}},
-      "commitPending":true,
-      "files":["frontend/src/hooks/useRecordingStart.ts","frontend/tests/lib/model-readiness-performance.test.mjs"]
-    }
+    {"number":3,"candidate":"Reuse model list during blocked recording-start readiness checks","verdict":"PROVEN","whisperReductionPercent":50,"parakeetReductionPercent":33.33,"commit":"ba3ef65"},
+    {"number":4,"candidate":"Parallelize transcription model picker provider loading","verdict":"PROVEN","benchmark":{"warmups":2,"measuredIterations":7,"beforeMedianMs":44.306666,"afterMedianMs":22.211125,"reductionPercent":49.87},"commitPending":true,"files":["frontend/src/hooks/useTranscriptionModels.ts","frontend/tests/lib/model-picker-performance.test.mjs"]}
   ],
   "consecutiveNoWinRuns": 0,
-  "verification":{"focusedBenchmark":"PASS","frontendTests":"PASS (82/82)","typecheck":"PASS","productionBuild":"PASS","diffCheck":"PASS","rustCheck":"NOT RUN: cargo is unavailable on this host"},
+  "verification":{"focusedBenchmark":"PASS","frontendTests":"PASS (83/83)","typecheck":"PASS","productionBuild":"PASS","diffCheck":"PASS","rustCheck":"NOT RUN: cargo is unavailable on this host"},
   "limitations":["The native Rust compiler is unavailable on this host; frontend and source-contract verification are green."]
 }

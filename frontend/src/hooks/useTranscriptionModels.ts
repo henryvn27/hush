@@ -45,36 +45,37 @@ export function useTranscriptionModels(transcriptModelConfig: TranscriptModelCon
     setLoadingModels(true);
     const allModels: ModelOption[] = [];
 
-    // Fetch Whisper models
-    try {
-      const whisperModels = await invoke<RawModelInfo[]>('whisper_get_available_models');
-      const availableWhisper = whisperModels
+    // These provider lists are independent. Keep their presentation order
+    // stable while allowing the slower provider to load in parallel.
+    const [whisperResult, parakeetResult] = await Promise.allSettled([
+      invoke<RawModelInfo[]>('whisper_get_available_models'),
+      invoke<RawModelInfo[]>('parakeet_get_available_models'),
+    ]);
+
+    if (whisperResult.status === 'fulfilled') {
+      allModels.push(...whisperResult.value
         .filter((m) => m.status === 'Available')
         .map((m) => ({
           provider: 'whisper' as const,
           name: m.name,
-          displayName: `🏠 Whisper: ${m.name}`,
+          displayName: String.fromCodePoint(0x1F3E0) + ' Whisper: ' + m.name,
           size_mb: m.size_mb,
-        }));
-      allModels.push(...availableWhisper);
-    } catch (err) {
-      console.error('Failed to fetch Whisper models:', err);
+        })));
+    } else {
+      console.error('Failed to fetch Whisper models:', whisperResult.reason);
     }
 
-    // Fetch Parakeet models
-    try {
-      const parakeetModels = await invoke<RawModelInfo[]>('parakeet_get_available_models');
-      const availableParakeet = parakeetModels
+    if (parakeetResult.status === 'fulfilled') {
+      allModels.push(...parakeetResult.value
         .filter((m) => m.status === 'Available')
         .map((m) => ({
           provider: 'parakeet' as const,
           name: m.name,
-          displayName: `⚡ Parakeet: ${m.name}`,
+          displayName: String.fromCodePoint(0x26A1) + ' Parakeet: ' + m.name,
           size_mb: m.size_mb,
-        }));
-      allModels.push(...availableParakeet);
-    } catch (err) {
-      console.error('Failed to fetch Parakeet models:', err);
+        })));
+    } else {
+      console.error('Failed to fetch Parakeet models:', parakeetResult.reason);
     }
 
     setAvailableModels(allModels);
@@ -95,10 +96,10 @@ export function useTranscriptionModels(transcriptModelConfig: TranscriptModelCon
     if (!userSelectedRef.current) {
       if (configuredMatch) {
         // Use the configured model if available
-        setSelectedModelKey(`${configuredMatch.provider}:${configuredMatch.name}`);
+        setSelectedModelKey(configuredMatch.provider + ':' + configuredMatch.name);
       } else if (allModels.length > 0) {
         // Fall back to first available model
-        setSelectedModelKey(`${allModels[0].provider}:${allModels[0].name}`);
+        setSelectedModelKey(allModels[0].provider + ':' + allModels[0].name);
       }
     }
 

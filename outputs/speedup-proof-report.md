@@ -1,21 +1,23 @@
-# Speedup Proof: Model Readiness Duplicate Fetch
+# Speedup Proof: Parallel Transcription Model Loading
 
 ## Verdict
 
-PROVEN. A failed recording start no longer fetches the same transcription-model list twice. The first successful model listing is retained for the download-state decision, while the old retry behavior remains when the first fetch fails.
+PROVEN. The transcription model picker now loads Whisper and Parakeet lists concurrently. Provider failures remain isolated through Promise.allSettled, preserving the previous behavior where one unavailable provider does not hide the other.
 
 ## Before and after
 
-- Whisper blocked start: 2 model IPC calls to 1, 50% reduction
-- Parakeet blocked start: 3 model-related calls to 2, 33.33% reduction
-- Benchmark: 2 warmups and 7 measured iterations
+Measured across 2 warmups and 7 iterations with equivalent 20ms provider responses:
 
-Ready starts retain their existing call counts. Remote providers still bypass local model checks.
+- Before median: 44.31ms
+- After median: 22.21ms
+- Reduction: 49.87%
+
+Presentation order remains Whisper first, then Parakeet. Model selection fallback and loading state behavior are unchanged.
 
 ## Verification
 
 - Focused benchmark: PASS
-- Frontend tests: PASS, 82/82
+- Frontend tests: PASS, 83/83
 - Typecheck: PASS
 - Production build: PASS
 - git diff --check: PASS
@@ -23,9 +25,9 @@ Ready starts retain their existing call counts. Remote providers still bypass lo
 
 ## Files
 
-- useRecordingStart.ts: /Users/Henrydev/Developer/Hush/frontend/src/hooks/useRecordingStart.ts:1
-- model-readiness-performance.test.mjs: /Users/Henrydev/Developer/Hush/frontend/tests/lib/model-readiness-performance.test.mjs:1
+- useTranscriptionModels.ts: /Users/Henrydev/Developer/Hush/frontend/src/hooks/useTranscriptionModels.ts:35
+- model-picker-performance.test.mjs: /Users/Henrydev/Developer/Hush/frontend/tests/lib/model-picker-performance.test.mjs:1
 
 ## Remaining campaign
 
-This is run 3 of the autonomous campaign. Five consecutive no-win proofs are still required before stopping.
+This is run 4 of the autonomous campaign. Five consecutive no-win proofs are still required before stopping.
