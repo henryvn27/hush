@@ -55,7 +55,7 @@ test('browser visual QA isolates each release surface into a named test', () => 
   assert.doesNotMatch(browserWorkspaceSpec, /for \(const \[width, height\] of releaseSizes\)/);
 
   for (const sourceMarker of [
-    'checkScreen(`${slug(route.nav)}-${slug(appearance)}-${width}x${height}`',
+    'checkScreen(`${slug(route.visual ?? route.nav)}-${slug(appearance)}-${width}x${height}`',
     'checkScreen(`settings-${slug(section)}-${slug(appearance)}-${width}x${height}`',
     'checkScreen(`missing-meeting-${slug(appearance)}-${width}x${height}`',
     'compareWorkspaceDialogs(appearance, width, height)',

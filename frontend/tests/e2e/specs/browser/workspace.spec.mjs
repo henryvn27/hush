@@ -48,12 +48,12 @@ async function closeDialog() {
 
 async function resetWorkspace() {
   await browser.url('http://127.0.0.1:3120/');
-  await expectPageHeading('Activity');
+  await expectPageHeading('Good to have you back.');
 }
 
 async function compareWorkspaceDialogs(appearance, width, height) {
   await browser.url('http://127.0.0.1:3120/');
-  await expectPageHeading('Activity');
+  await expectPageHeading('Good to have you back.');
 
   await $('button[aria-label="Import audio"]').click();
   await expectPageHeading('Import a recording', 2);
@@ -149,7 +149,7 @@ describe('Meetily browser-mode workspace', () => {
       it(`persists ${appearance} and compares ${route.nav} at ${width}x${height}`, async () => {
         await prepareVisualCase(visualCase);
         await openSidebarRoute(route.nav, route.heading, route.path);
-        expect(await browser.checkScreen(`${slug(route.nav)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+        expect(await browser.checkScreen(`${slug(route.visual ?? route.nav)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
       });
     }
 

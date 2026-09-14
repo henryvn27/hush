@@ -1,10 +1,10 @@
 import { $, browser } from '@wdio/globals';
 
 export const routes = [
-  { nav: 'Home', heading: 'Activity', path: '/' },
-  { nav: 'New meeting', heading: 'New meeting', path: '/new-meeting' },
-  { nav: 'Saved meetings', heading: 'Saved meetings', path: '/meetings' },
-  { nav: 'Ask meetings', heading: 'Ask meetings', path: '/chat' },
+  { nav: 'Home', heading: 'Good to have you back.', path: '/' },
+  { nav: 'New dictation', heading: 'New meeting', path: '/new-meeting', visual: 'New meeting' },
+  { nav: 'History', heading: 'Saved meetings', path: '/meetings', visual: 'Saved meetings' },
+  { nav: 'Ask your archive', heading: 'Ask meetings', path: '/chat', visual: 'Ask meetings' },
 ];
 
 export async function expectPageHeading(heading, level = 1) {
@@ -31,11 +31,12 @@ export async function openSidebarRoute(nav, heading, path) {
 
 export async function waitForThemeMotionToSettle() {
   const readThemeColors = () => browser.execute(() => {
-      const label = document.querySelector('button[aria-label="New meeting"] span');
+      const label = document.querySelector('button[aria-label="New dictation"] span');
       if (!(label instanceof HTMLElement)) return null;
       const probe = document.createElement('span');
       probe.style.color = 'hsl(var(--sidebar-muted))';
-      document.body.append(probe);
+      const host = label.closest(".hush-sidebar") ?? document.body;
+      host.append(probe);
       const expected = getComputedStyle(probe).color;
       probe.remove();
       return {

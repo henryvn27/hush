@@ -411,7 +411,7 @@
   .hush-sidebar {
     border-right: 1px solid hsl(var(--sidebar-border));
     --sidebar-foreground: 264 15% 20%;
-    --sidebar-muted: 264 7% 47%;
+    --sidebar-muted: 264 9% 39%;
     --sidebar-hover: 264 18% 93%;
     --sidebar-border: 264 11% 87%;
     background: hsl(264 16% 97%);
@@ -501,6 +501,10 @@
 
   .hush-activity-capture {
     @apply mt-7 flex items-center justify-between gap-8 rounded-[0.9rem] border border-[#e8e5ec] bg-[#f5f3f8] px-6 py-5 shadow-[0_12px_32px_hsl(264_18%_24%/0.05)];
+  }
+
+  .dark .hush-activity-capture {
+    @apply border-[hsl(264_8%_25%)] bg-[hsl(264_12%_16%)] shadow-none;
   }
 
   .hush-activity-capture-copy {
