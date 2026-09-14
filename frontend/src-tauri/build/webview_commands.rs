@@ -52,6 +52,7 @@ pub const WEBVIEW_COMMANDS: &[&str] = &[
     "complete_onboarding",
     "capture_focused_app",
     "check_accessibility_permission",
+    "request_accessibility_permission",
     "detect_legacy_database",
     "disable_analytics",
     "end_analytics_session",

@@ -1,7 +1,7 @@
 [[permission]]
 identifier = "main-window-commands"
 description = """
-Allows only the custom Tauri commands invoked by Meetily Improved's shipped
+Allows only the custom Tauri commands invoked by Hush's shipped
 main webview. New commands stay denied until their caller and behavior are
 reviewed and added to the security contract.
 """
@@ -54,6 +54,7 @@ commands.allow = [
   "complete_onboarding",
   "capture_focused_app",
   "check_accessibility_permission",
+  "request_accessibility_permission",
   "detect_legacy_database",
   "disable_analytics",
   "end_analytics_session",
