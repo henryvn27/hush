@@ -34,3 +34,26 @@ Hush now has a more deliberate visual identity than the original generic dashboa
 Wispr was open beside Hush during this pass. Wispr's first-run screen uses a full-width top rail, a centered editorial split, a large visual proof of the product, and a single sign-in action. Hush's prior screen used a persistent desktop-style sidebar and a narrow preview card; that read as a generic app shell even though the copy was more privacy-forward. The shared Hush onboarding shell has now been changed in source to the same top-rail and full-width canvas rhythm, with a larger real Activity preview and a quieter `PRIVATE BY DEFAULT` marker. The source change is verified in the frontend build and contract suite; the current native artifact now includes the monitor-placement fix; a live first-run re-capture remains deferred because this machine has persisted onboarding state.
 
 The source rebuild and fresh app bundle were completed afterward. The live Hush workspace now confirms the intended compact Activity surface, local engine status, Fn education, empty-history state, and sidebar actions. Hush Settings also exposes Globe/Fn hold plus double-press, Option+Space, Command+Shift+Space, custom keybind capture, Flow Bar visibility, focused-app insertion, Accessibility status, phrase rules, microphone, language, privacy boundary, and appearance controls. Wispr remains on its unauthenticated first-run screen, with its menu bar exposing Dictation and My Voice personalization entry points. The rebuilt Hush onboarding step itself still needs a fresh screenshot because the installed test profile has already completed onboarding; no user data was deleted to manufacture a first-run state.
+
+## Fresh installed comparison: 2026-09-14
+
+The official Wispr Flow app and the installed Hush app were both present on the Mac during this pass. Direct captures are preserved in the local comparison evidence folder at `Hush/.tmp/comparison-20260914/`:
+
+- Wispr Hub/first-run window: `1350x850`, with a five-stage top rail (`SIGN UP`, `PERMISSIONS`, `SET UP`, `LEARN`, `PERSONALIZE`), a centered editorial sign-in surface, and a large visual product proof.
+- Wispr Status window: `512x586`, but visually blank in the capture because the reference app was still unauthenticated and its status surface did not expose a usable Hub workflow.
+- Hush Hub: `1280x820`, with a persistent sidebar, `Activity` capture surface, local engine state, privacy state, and an intentionally empty local-history state.
+- Hush native Flow Bar: `144x40` at the bottom of the selected monitor work area.
+
+### Findings
+
+| Area | Direct observation | Decision |
+| --- | --- | --- |
+| First run | Wispr has stronger editorial pacing and a larger visual proof. Hush's onboarding is more honest about local privacy and already uses the same top-rail rhythm, but its preview is denser and more utilitarian. | Keep Hush's local/privacy advantage; continue polishing the preview composition rather than adding more setup copy. |
+| Hub home | Hush's installed Hub was visually more dashboard-like than Wispr's first-run surface and opened with a generic greeting. | Changed the real Hub title to `Activity` and replaced the empty captured-count value with an honest em dash plus first-capture guidance. |
+| Idle bar | Hush's native window is demonstrably compact at `144x40`; the QA capture shows a small dark pill with the orange Hush mark, `Hold Fn`, and activity bars. | Preserve the footprint. The remaining question is state fidelity during active recording, not more size. |
+| Authenticated workflows | Wispr's Hub, history, settings, and recovery workflows remain unavailable without signing in. | Do not claim parity or superiority for those workflows yet; keep them marked `NOT RUN`. |
+| Native interaction | The existing Hush process remained live while the rebuilt QA process initialized and exited before exposing a second inspectable window. | Re-run native close/relaunch, multi-display, Globe/Fn, double-press, and focused-editor insertion with a clean app owner before scoring them. |
+
+### Current audit verdict
+
+Hush now has a better local/privacy story and a credible compact bar footprint. Wispr still leads on first-run art direction and has unverified authenticated product surfaces that cannot be scored from this machine without account access. The next comparison pass must focus on real active-state feedback, insertion into two editors, recovery after interruption, and a fair authenticated Hub comparison; these are evidence gaps, not resolved parity claims.

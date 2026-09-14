@@ -75,8 +75,8 @@ export default function DashboardPage() {
       <header className="hush-hub-header">
         <div>
           <p className="app-eyebrow">Hush / local voice desk</p>
-          <h1 className="hush-hub-title">Good to have you back.</h1>
-          <p className="hush-hub-subtitle">Your voice, turned into clear text and kept on this Mac.</p>
+          <h1 className="hush-hub-title">Activity</h1>
+          <p className="hush-hub-subtitle">Your local dictation history, ready when you are.</p>
         </div>
         <div className="hush-shortcut-note" aria-label="Hands-free shortcut">
           <span className="hush-shortcut-note-label">Hold to dictate</span>
@@ -112,8 +112,8 @@ export default function DashboardPage() {
       <section aria-label="Hush status" className="hush-activity-facts">
         <div className="hush-ledger-item">
           <span className="hush-ledger-label">Flows captured</span>
-          <strong>{meetings.length.toLocaleString()}</strong>
-          <span>on this Mac</span>
+          <strong>{meetings.length === 0 ? '—' : meetings.length.toLocaleString()}</strong>
+          <span>{meetings.length === 0 ? 'your first capture is next' : 'on this Mac'}</span>
         </div>
         <div className="hush-ledger-item">
           <span className="hush-ledger-label">Local engine</span>
