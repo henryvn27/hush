@@ -80,7 +80,7 @@ async function emitToMainWithFallback<T>(eventName: string, payload?: T) {
 
 function SignalWave({ active }: { active: boolean }) {
   return (
-    <span className={active ? 'hush-signal-wave hush-signal-wave-active' : 'hush-signal-wave'} aria-hidden="true">
+    <span className={active ? 'hush-signal-wave hush-signal-wave-active' : 'hush-signal-wave hush-signal-wave-idle'} aria-hidden="true">
       {[0.45, 0.8, 1, 0.62, 0.36].map((scale, index) => (
         <span key={index} style={{ '--hush-wave-scale': scale } as CSSProperties} />
       ))}
