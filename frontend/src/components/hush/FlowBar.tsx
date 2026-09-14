@@ -159,20 +159,33 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
   if (!barEnabled || (hiddenUntil && hiddenUntil > Date.now())) return null;
 
   return (
-    <aside className={floating ? 'hush-flow-bar hush-flow-bar-floating group' : 'hush-flow-bar group'} aria-label="Hush Flow Bar">
+    <aside
+      className={floating ? 'hush-flow-bar hush-flow-bar-floating group' : 'hush-flow-bar group'}
+      aria-label="Hush Flow Bar"
+      onPointerDown={(event) => {
+        if (!floating || event.button !== 0) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button')) return;
+        void getCurrentWindow().startDragging();
+      }}
+    >
       <button
         type="button"
         className="hush-flow-core"
         onClick={() => {
+          // Keep the center of the bar non-destructive during a live hands-free
+          // session. Wispr reserves stop/cancel for explicit controls so an
+          // accidental click cannot end a long dictation.
+          if (isRecording || isBusy) return;
           if (floating) {
-            void (isRecording ? emitToMainWithFallback('request-recording-toggle', { state: 'Pressed' }) : startRecordingFromFlowBar());
+            void startRecordingFromFlowBar();
           } else {
             router.push('/new-meeting?autostart=1');
           }
         }}
         disabled={isBusy}
-        aria-label={isRecording ? 'Open live recording status' : 'Start local dictation'}
-        title={isRecording ? 'Open live recording' : 'Start local dictation'}
+        aria-label={isRecording ? 'Dictation in progress; use Stop or Cancel' : 'Start local dictation'}
+        title={isRecording ? 'Use Stop to finish or Cancel to discard' : 'Start local dictation'}
       >
         <span className={isLive ? 'hush-flow-orb hush-flow-orb-live' : 'hush-flow-orb'}>
           <Image src="/hush-mark.png" alt="" width={24} height={24} unoptimized aria-hidden="true" />

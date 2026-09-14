@@ -5,3 +5,5 @@ commands.allow = [
   "flow_bar_start_recording",
   "get_recording_state",
 ]
+
+# Native dragging lets users move the compact bar without exposing broader window controls.
