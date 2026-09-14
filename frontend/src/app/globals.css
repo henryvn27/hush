@@ -1913,6 +1913,12 @@ html[data-native-qa='true'] *::after {
   transform: translateX(-50%);
 }
 
+.hush-landing-real-bar-overlay img {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.22rem;
+}
+
 .hush-landing-real-bar-dot {
   width: 0.25rem;
   height: 0.25rem;

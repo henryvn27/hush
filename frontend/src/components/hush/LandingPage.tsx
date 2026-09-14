@@ -59,6 +59,7 @@ export default function LandingPage() {
               unoptimized
             />
             <div className="hush-landing-real-bar-overlay" aria-hidden="true">
+              <Image src="/hush-mark.png" alt="" width={14} height={14} unoptimized />
               <span className="hush-landing-real-bar-dot" />
               <span>Click to start dictating</span>
               <i /><i /><i />
