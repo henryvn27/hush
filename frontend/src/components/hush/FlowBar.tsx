@@ -263,6 +263,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     <aside
       className={['hush-flow-bar', floating && 'hush-flow-bar-floating', (isRecording || isBusy) && 'hush-flow-bar-recording', 'group'].filter(Boolean).join(' ')}
       aria-label="Hush Flow Bar"
+      aria-busy={isBusy || undefined}
       onContextMenu={(event) => {
         event.preventDefault();
         const trigger = event.currentTarget.querySelector('.hush-flow-menu-trigger') as HTMLButtonElement | null;
@@ -304,7 +305,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
         </span>
         <span className="hush-flow-copy">
           <span className="hush-flow-kicker">Hush</span>
-          <span className="hush-flow-status">
+          <span className="hush-flow-status" role="status" aria-live="polite">
             <span className={flowError ? 'hush-flow-status-dot hush-flow-status-dot-error' : isLive ? 'hush-flow-status-dot hush-flow-status-dot-live' : 'hush-flow-status-dot'} aria-hidden="true" />
             {flowError ? statusLabel : isRecording ? statusLabel : `Hold ${shortcutLabel}`}
             {isRecording && <span className="hush-flow-time">{formatDuration(recordingDuration)}</span>}
