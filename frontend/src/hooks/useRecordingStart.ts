@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import { useTranscripts } from '@/contexts/TranscriptContext';
@@ -16,6 +16,11 @@ import { ModelInfo as WhisperModelInfo } from '@/lib/whisper';
 interface UseRecordingStartReturn {
   handleRecordingStart: () => Promise<void>;
   isAutoStarting: boolean;
+}
+
+function isDownloadingModel(model: { status?: string | Record<string, unknown> }): boolean {
+  if (model.status === 'Downloading') return true;
+  return Boolean(model.status && typeof model.status === 'object' && 'Downloading' in model.status);
 }
 
 /**
@@ -58,29 +63,44 @@ export function useRecordingStart(
     return `Meeting ${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
   }, []);
 
+  type CachedModelStatus = { ready: boolean; downloading: boolean };
+  const modelStatusRef = useRef<CachedModelStatus | null>(null);
+
   // Check only the engine selected in settings. A missing Parakeet model must
   // never block a user who selected Whisper (or a remote provider).
   const checkTranscriptionReady = useCallback(async (): Promise<boolean> => {
+    modelStatusRef.current = null;
     const { provider, model } = transcriptModelConfig;
     if (provider !== 'parakeet' && provider !== 'localWhisper') return true;
 
     try {
+      let models: Array<{ name: string; status?: string | Record<string, unknown> }>;
       if (provider === 'parakeet') {
         await invoke('parakeet_init');
-        const models = await invoke<ParakeetModelInfo[]>('parakeet_get_available_models');
-        return models.some((item) => item.name === model && item.status === 'Available');
+        models = await invoke<ParakeetModelInfo[]>('parakeet_get_available_models');
+      } else {
+        models = await invoke<WhisperModelInfo[]>('whisper_get_available_models');
       }
 
-      const models = await invoke<WhisperModelInfo[]>('whisper_get_available_models');
-      return models.some((item) => item.name === model && item.status === 'Available');
+      const status = {
+        ready: models.some((item) => item.name === model && item.status === 'Available'),
+        downloading: models.some(isDownloadingModel),
+      };
+      modelStatusRef.current = status;
+      return status.ready;
     } catch (error) {
-      console.error(`Failed to check ${provider} transcription status:`, error);
+      console.error('Failed to check ' + provider + ' transcription status:', error);
       return false;
     }
   }, [transcriptModelConfig]);
 
-  // Check download state for the configured engine only.
+  // Reuse the model list from the readiness check when the model is missing.
+  // If that check failed before producing a list, retain the old retry path.
   const checkIfModelDownloading = useCallback(async (): Promise<boolean> => {
+    const cachedStatus = modelStatusRef.current;
+    modelStatusRef.current = null;
+    if (cachedStatus) return cachedStatus.downloading;
+
     try {
       if (transcriptModelConfig.provider !== 'parakeet' && transcriptModelConfig.provider !== 'localWhisper') {
         return false;
@@ -89,7 +109,7 @@ export function useRecordingStart(
       const models = transcriptModelConfig.provider === 'parakeet'
         ? await invoke<ParakeetModelInfo[]>('parakeet_get_available_models')
         : await invoke<WhisperModelInfo[]>('whisper_get_available_models');
-      return models.some(m => typeof m.status === 'object' && 'Downloading' in m.status);
+      return models.some(isDownloadingModel);
     } catch (error) {
       console.error('Failed to check model download status:', error);
       return false; // Default to not downloading (will show error + modal)

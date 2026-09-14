@@ -2,44 +2,18 @@
   "campaignStatus": "ACTIVE",
   "campaignStarted": "2026-09-14",
   "runs": [
+    {"number":1,"candidate":"Eliminate Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","baselineIpcCalls":101,"optimizedIpcCalls":1,"reductionPercent":99.01,"commit":"35a08b8"},
+    {"number":2,"candidate":"Batch recovery checkpoint availability checks","verdict":"PROVEN","baselineIpcCalls":100,"optimizedIpcCalls":1,"reductionPercent":99,"commit":"11a10c5"},
     {
-      "number": 1,
-      "candidate": "Eliminate Meetings-library metadata N+1 IPC loading",
-      "verdict": "PROVEN",
-      "baselineIpcCalls": 101,
-      "optimizedIpcCalls": 1,
-      "reductionPercent": 99.01,
-      "commit": "35a08b8"
-    },
-    {
-      "number": 2,
-      "candidate": "Batch recovery checkpoint availability checks",
-      "verdict": "PROVEN",
-      "baselineIpcCalls": 100,
-      "optimizedIpcCalls": 1,
-      "reductionPercent": 99,
-      "commitPending": true,
-      "files": [
-        "frontend/src-tauri/src/audio/incremental_saver.rs",
-        "frontend/src-tauri/src/lib.rs",
-        "frontend/src-tauri/build/webview_commands.rs",
-        "frontend/src-tauri/permissions/main-window.toml",
-        "frontend/src/hooks/useTranscriptRecovery.ts",
-        "frontend/tests/lib/recovery-checkpoint-performance.test.mjs"
-      ]
+      "number":3,
+      "candidate":"Reuse model list during blocked recording-start readiness checks",
+      "verdict":"PROVEN",
+      "benchmark":{"warmups":2,"measuredIterations":7,"whisper":{"baselineModelIpcCalls":2,"optimizedModelIpcCalls":1,"reductionPercent":50},"parakeet":{"baselineModelIpcCalls":3,"optimizedModelIpcCalls":2,"reductionPercent":33.33}},
+      "commitPending":true,
+      "files":["frontend/src/hooks/useRecordingStart.ts","frontend/tests/lib/model-readiness-performance.test.mjs"]
     }
   ],
   "consecutiveNoWinRuns": 0,
-  "verification": {
-    "focusedBenchmark": "PASS",
-    "frontendTests": "PASS (81/81)",
-    "typecheck": "PASS",
-    "productionBuild": "PASS",
-    "diffCheck": "PASS",
-    "rustCheck": "NOT RUN: cargo is unavailable on this host"
-  },
-  "limitations": [
-    "The benchmark measures IPC fanout; the native batch command still scans each requested folder.",
-    "Native Rust compilation and runtime DB/filesystem timing require a host with cargo."
-  ]
+  "verification":{"focusedBenchmark":"PASS","frontendTests":"PASS (82/82)","typecheck":"PASS","productionBuild":"PASS","diffCheck":"PASS","rustCheck":"NOT RUN: cargo is unavailable on this host"},
+  "limitations":["The native Rust compiler is unavailable on this host; frontend and source-contract verification are green."]
 }
