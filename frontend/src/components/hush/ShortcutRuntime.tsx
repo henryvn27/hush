@@ -89,7 +89,9 @@ export function ShortcutRuntime() {
         const previousBindings = shortcutBindings(previousConfig);
         try {
           for (const shortcut of previousBindings) {
-            await register(shortcut, () => undefined);
+            await register(shortcut, () => {
+              window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
+            });
             activeShortcuts.push(shortcut);
           }
         } catch {

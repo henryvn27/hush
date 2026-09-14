@@ -27,6 +27,7 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBarWindow, /hush-flow-bar-disabled/);
   assert.match(flowBarWindow, /currentMonitor\(\)/);
   assert.match(flowBarWindow, /setPosition\(new PhysicalPosition/);
+  assert.ok(((shortcutRuntime.match(/hush-toggle-recording/g) || []).length) >= 2);
   assert.match(nativeSource, /current_monitor\(\)[\s\S]*primary_monitor\(\)/);
   assert.match(nativeSource, /flow_bar_start_recording[\s\S]*validate_transcription_model_ready[\s\S]*default_input_device[\s\S]*capture_focused_app\(\)/);
 });
