@@ -1,12 +1,21 @@
 {
   "campaigns": [
-    {"name":"Prior recording-state campaign","status":"COMPLETE","retainedCommit":"2e2e816","retainedReductionPercent":33.52,"consecutiveNoWinRuns":5},
     {
-      "name":"Autonomous repository speedup campaign",
-      "status":"ACTIVE",
-      "started":"2026-09-14",
-      "runs":[{"number":1,"candidate":"Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","baselineIpcCalls":101,"optimizedIpcCalls":1,"reductionPercent":99.01,"verification":["focused benchmark","80 frontend tests","typecheck","production build"]}],
-      "consecutiveNoWinRuns":0
+      "name": "Prior recording-state campaign",
+      "status": "COMPLETE",
+      "retainedCommit": "2e2e816",
+      "retainedReductionPercent": 33.52,
+      "consecutiveNoWinRuns": 5
+    },
+    {
+      "name": "Autonomous repository speedup campaign",
+      "status": "ACTIVE",
+      "started": "2026-09-14",
+      "runs": [
+        {"number":1,"candidate":"Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","baselineIpcCalls":101,"optimizedIpcCalls":1,"reductionPercent":99.01,"commit":"35a08b8"},
+        {"number":2,"candidate":"Recovery checkpoint availability fanout","verdict":"PROVEN","baselineIpcCalls":100,"optimizedIpcCalls":1,"reductionPercent":99,"verification":["focused benchmark","81 frontend tests","typecheck","production build"],"rustCheck":"NOT RUN: cargo unavailable"}
+      ],
+      "consecutiveNoWinRuns": 0
     }
   ]
 }

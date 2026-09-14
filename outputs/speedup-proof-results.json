@@ -1,43 +1,45 @@
 {
   "campaignStatus": "ACTIVE",
   "campaignStarted": "2026-09-14",
-  "run": {
-    "number": 1,
-    "candidate": "Eliminate Meetings-library metadata N+1 IPC loading",
-    "verdict": "PROVEN",
-    "benchmark": {
-      "scenario": "Meetings library initial load",
-      "warmups": 2,
-      "measuredIterations": 7,
-      "representativeMeetingCount": 100,
+  "runs": [
+    {
+      "number": 1,
+      "candidate": "Eliminate Meetings-library metadata N+1 IPC loading",
+      "verdict": "PROVEN",
       "baselineIpcCalls": 101,
       "optimizedIpcCalls": 1,
-      "callsRemoved": 100,
       "reductionPercent": 99.01,
-      "scaling": [
-        {"meetings":0,"baselineIpcCalls":1,"optimizedIpcCalls":1},
-        {"meetings":1,"baselineIpcCalls":2,"optimizedIpcCalls":1},
-        {"meetings":10,"baselineIpcCalls":11,"optimizedIpcCalls":1},
-        {"meetings":50,"baselineIpcCalls":51,"optimizedIpcCalls":1},
-        {"meetings":100,"baselineIpcCalls":101,"optimizedIpcCalls":1},
-        {"meetings":500,"baselineIpcCalls":501,"optimizedIpcCalls":1}
-      ]
+      "commit": "35a08b8"
     },
-    "files": [
-      "frontend/src-tauri/src/api/api.rs",
-      "frontend/src/app/meetings/page.tsx",
-      "frontend/src/lib/meeting-history.ts",
-      "frontend/tests/lib/meetings-load-performance.test.mjs"
-    ]
-  },
+    {
+      "number": 2,
+      "candidate": "Batch recovery checkpoint availability checks",
+      "verdict": "PROVEN",
+      "baselineIpcCalls": 100,
+      "optimizedIpcCalls": 1,
+      "reductionPercent": 99,
+      "commitPending": true,
+      "files": [
+        "frontend/src-tauri/src/audio/incremental_saver.rs",
+        "frontend/src-tauri/src/lib.rs",
+        "frontend/src-tauri/build/webview_commands.rs",
+        "frontend/src-tauri/permissions/main-window.toml",
+        "frontend/src/hooks/useTranscriptRecovery.ts",
+        "frontend/tests/lib/recovery-checkpoint-performance.test.mjs"
+      ]
+    }
+  ],
+  "consecutiveNoWinRuns": 0,
   "verification": {
     "focusedBenchmark": "PASS",
-    "frontendTests": "PASS (80/80)",
+    "frontendTests": "PASS (81/81)",
     "typecheck": "PASS",
     "productionBuild": "PASS",
     "diffCheck": "PASS",
     "rustCheck": "NOT RUN: cargo is unavailable on this host"
   },
-  "previousCampaign": {"commit":"2e2e816","verdict":"PROVEN","reductionPercent":33.52,"followUpNoWinRuns":5},
-  "limitations": ["The IPC benchmark measures deterministic call volume; native Rust compilation and runtime DB timing require a host with cargo.","Current API consumers receive additive metadata fields; no existing id/title fields were removed."]
+  "limitations": [
+    "The benchmark measures IPC fanout; the native batch command still scans each requested folder.",
+    "Native Rust compilation and runtime DB/filesystem timing require a host with cargo."
+  ]
 }

@@ -55,30 +55,54 @@ export function useTranscriptRecovery(): UseTranscriptRecoveryReturn {
         return isWithinRetention && isOldEnough;
       });
 
-      // Verify audio checkpoint availability for each meeting
-      const meetingsWithAudioStatus = await Promise.all(
-        recentMeetings.map(async (meeting) => {
-          if (meeting.folderPath) {
-            try {
-              const hasAudio = await invoke<boolean>('has_audio_checkpoints', {
-                meetingFolder: meeting.folderPath
-              });
+      // Verify audio checkpoint availability in one native call. Keep the
+      // per-folder path as a compatibility fallback for older installed binaries.
+      const meetingsWithFolders = recentMeetings.filter((meeting) => Boolean(meeting.folderPath));
+      const checkpointByFolder = new Map<string, { has_audio: boolean; error?: string }>();
 
-              // If no audio files, clear folderPath to show "No audio" in UI
-              return {
-                ...meeting,
-                folderPath: hasAudio ? meeting.folderPath : undefined
-              };
-            } catch (error) {
-              console.warn('Failed to check audio for meeting:', error);
-              // On error, assume no audio to be safe
-              return { ...meeting, folderPath: undefined };
-            }
-          }
-          return meeting;
-        })
-      );
+      if (meetingsWithFolders.length > 0) {
+        try {
+          const statuses = await invoke<Array<{
+            meeting_folder: string;
+            has_audio: boolean;
+            error?: string;
+          }>>('has_audio_checkpoints_batch', {
+            meetingFolders: meetingsWithFolders.map((meeting) => meeting.folderPath),
+          });
+          statuses.forEach((status) => checkpointByFolder.set(status.meeting_folder, status));
+        } catch (batchError) {
+          console.warn('Batch audio checkpoint check unavailable; using compatibility fallback:', batchError);
+          await Promise.all(
+            meetingsWithFolders.map(async (meeting) => {
+              try {
+                const hasAudio = await invoke<boolean>('has_audio_checkpoints', {
+                  meetingFolder: meeting.folderPath,
+                });
+                checkpointByFolder.set(meeting.folderPath!, { has_audio: hasAudio });
+              } catch (error) {
+                checkpointByFolder.set(meeting.folderPath!, {
+                  has_audio: false,
+                  error: error instanceof Error ? error.message : 'Unknown checkpoint error',
+                });
+              }
+            }),
+          );
+        }
+      }
 
+      const meetingsWithAudioStatus = recentMeetings.map((meeting) => {
+        if (!meeting.folderPath) return meeting;
+
+        const status = checkpointByFolder.get(meeting.folderPath);
+        if (status?.error) {
+          console.warn('Failed to check audio for meeting:', status.error);
+        }
+
+        return {
+          ...meeting,
+          folderPath: status?.has_audio ? meeting.folderPath : undefined,
+        };
+      });
 
       setRecoverableMeetings(meetingsWithAudioStatus);
       return meetingsWithAudioStatus;

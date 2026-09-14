@@ -431,6 +431,48 @@ pub async fn cleanup_checkpoints(meeting_folder: String) -> Result<(), String> {
     Ok(())
 }
 
+#[derive(Debug, Serialize)]
+pub struct AudioCheckpointStatus {
+    pub meeting_folder: String,
+    pub has_audio: bool,
+    pub error: Option<String>,
+}
+
+/// Check audio checkpoint availability for several meeting folders in one IPC call.
+#[tauri::command]
+pub async fn has_audio_checkpoints_batch(
+    meeting_folders: Vec<String>,
+) -> Result<Vec<AudioCheckpointStatus>, String> {
+    Ok(meeting_folders
+        .into_iter()
+        .map(|meeting_folder| {
+            let checkpoints_dir = PathBuf::from(&meeting_folder).join(".checkpoints");
+            if !checkpoints_dir.exists() {
+                return AudioCheckpointStatus {
+                    meeting_folder,
+                    has_audio: false,
+                    error: None,
+                };
+            }
+
+            match std::fs::read_dir(&checkpoints_dir) {
+                Ok(entries) => AudioCheckpointStatus {
+                    meeting_folder,
+                    has_audio: entries.flatten().any(|entry| {
+                        entry.path().extension().and_then(|value| value.to_str()) == Some("mp4")
+                    }),
+                    error: None,
+                },
+                Err(error) => AudioCheckpointStatus {
+                    meeting_folder,
+                    has_audio: false,
+                    error: Some(format!("Failed to read checkpoints directory: {error}")),
+                },
+            }
+        })
+        .collect())
+}
+
 /// Check if a meeting folder has audio checkpoint files
 /// Returns true if .checkpoints/ directory exists and contains .mp4 files
 #[tauri::command]

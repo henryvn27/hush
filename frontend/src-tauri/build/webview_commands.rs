@@ -77,6 +77,7 @@ pub const WEBVIEW_COMMANDS: &[&str] = &[
     "get_transcription_status",
     "focus_captured_app",
     "has_audio_checkpoints",
+    "has_audio_checkpoints_batch",
     "hide_console",
     "identify_user",
     "import_and_initialize_database",
