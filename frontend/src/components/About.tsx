@@ -100,7 +100,7 @@ export function About() {
             </div>
 
             <div className="space-y-3">
-                <h2 className="text-sm font-semibold text-foreground">What this fork improves</h2>
+                <h2 className="text-sm font-semibold text-foreground">What Hush is built for</h2>
                 <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Clearer workbench</h3>
@@ -111,7 +111,7 @@ export function About() {
                         <p className="text-xs leading-relaxed text-muted-foreground">Meeting data remains local. Remote processing happens only when you explicitly configure a remote provider.</p>
                     </div>
                     <div className="rounded-control border border-border bg-muted/40 p-3">
-                        <h3 className="mb-1 text-sm font-semibold text-foreground">Same foundation</h3>
+                        <h3 className="mb-1 text-sm font-semibold text-foreground">Reliable foundation</h3>
                         <p className="text-xs leading-relaxed text-muted-foreground">Capture, transcription, summaries, imports, recovery, and saved meetings stay available while the UI changes.</p>
                     </div>
                     <div className="rounded-control border border-border bg-muted/40 p-3">
