@@ -864,6 +864,11 @@
     animation: hush-pulse 1.4s ease-in-out infinite;
   }
 
+  .hush-flow-status-dot-error {
+    @apply bg-[hsl(var(--destructive))];
+    animation: hush-pulse 1.2s ease-in-out infinite;
+  }
+
   .hush-flow-time {
     @apply ml-1 font-sans text-[0.625rem] tabular-nums text-white/50;
   }

@@ -40,6 +40,7 @@ async function startRecordingFromFlowBar() {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Hush could not start local dictation.';
     console.warn('[Hush Flow Bar] Native start command failed', error);
+    window.dispatchEvent(new CustomEvent('hush-flow-bar-error', { detail: { message } }));
     await emitToMainWithFallback('hush-flow-bar-error', { message });
   }
 }
@@ -70,6 +71,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
   const [barEnabled, setBarEnabled] = useState(true);
   const [shortcutLabel, setShortcutLabel] = useState('Fn');
   const [hasLastTranscript, setHasLastTranscript] = useState(false);
+  const [flowError, setFlowError] = useState<string | null>(null);
   const isBusy = isStopping || isProcessing || isSaving;
   const isLive = isRecording && !isPaused;
   const nativeVisibility = useCallback(async (visible: boolean) => {
@@ -78,11 +80,13 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
       else await getCurrentWindow().hide();
     }
   }, [floating]);
-  const statusLabel = isBusy
-    ? status === RecordingStatus.SAVING ? 'Saving locally' : 'Finishing capture'
+  const statusLabel = flowError
+    ? 'Check Settings'
+    : isBusy
+      ? status === RecordingStatus.SAVING ? 'Saving locally' : 'Finishing capture'
       : isRecording
         ? isPaused ? 'Capture paused' : 'Listening'
-      : 'Ready to flow';
+        : 'Ready to flow';
 
   useEffect(() => {
     const savedHiddenUntil = Number(window.localStorage.getItem('hush-flow-bar-hidden-until') ?? 0);
@@ -119,6 +123,12 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     window.addEventListener('hush-shortcut-change', handleShortcutChange);
     const handleLastTranscriptChange = () => setHasLastTranscript(Boolean(readLastTranscript()));
     window.addEventListener('hush-last-transcript-change', handleLastTranscriptChange);
+    const handleFlowBarError = (event: Event) => {
+      const message = (event as CustomEvent<{ message?: string }>).detail?.message || 'Check Settings before dictating';
+      setFlowError(message);
+      window.setTimeout(() => setFlowError(null), 5000);
+    };
+    window.addEventListener('hush-flow-bar-error', handleFlowBarError);
 
     const handleShortcut = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -136,6 +146,7 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('hush-shortcut-change', handleShortcutChange);
       window.removeEventListener('hush-last-transcript-change', handleLastTranscriptChange);
+      window.removeEventListener('hush-flow-bar-error', handleFlowBarError);
     };
   }, [router, nativeVisibility]);
 
@@ -195,14 +206,20 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
           // accidental click cannot end a long dictation.
           if (isRecording || isBusy) return;
           if (floating) {
+            if (flowError) {
+              setFlowError(null);
+              void emitToMainWithFallback('hush-main-navigation', { path: '/settings' });
+              return;
+            }
+            setFlowError(null);
             void startRecordingFromFlowBar();
           } else {
             router.push('/new-meeting?autostart=1');
           }
         }}
         disabled={isBusy}
-        aria-label={isRecording ? 'Dictation in progress; use Stop or Cancel' : `Hold ${shortcutLabel} to dictate`}
-        title={isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate`}
+        aria-label={flowError ? 'Open Hush settings to fix dictation' : isRecording ? 'Dictation in progress; use Stop or Cancel' : `Hold ${shortcutLabel} to dictate`}
+        title={flowError ? flowError : isRecording ? 'Use Stop to finish or Cancel to discard' : `Hold ${shortcutLabel} to dictate`}
       >
         <span className={isLive ? 'hush-flow-orb hush-flow-orb-live' : 'hush-flow-orb'}>
           <Image src="/hush-mark.png" alt="" width={24} height={24} unoptimized aria-hidden="true" />
@@ -210,8 +227,8 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
         <span className="hush-flow-copy">
           <span className="hush-flow-kicker">Hush</span>
           <span className="hush-flow-status">
-            <span className={isLive ? 'hush-flow-status-dot hush-flow-status-dot-live' : 'hush-flow-status-dot'} aria-hidden="true" />
-            {isRecording ? statusLabel : `Hold ${shortcutLabel} to dictate`}
+            <span className={flowError ? 'hush-flow-status-dot hush-flow-status-dot-error' : isLive ? 'hush-flow-status-dot hush-flow-status-dot-live' : 'hush-flow-status-dot'} aria-hidden="true" />
+            {flowError ? statusLabel : isRecording ? statusLabel : `Hold ${shortcutLabel} to dictate`}
             {isRecording && <span className="hush-flow-time">{formatDuration(recordingDuration)}</span>}
           </span>
         </span>
