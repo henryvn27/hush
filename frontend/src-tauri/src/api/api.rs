@@ -69,6 +69,9 @@ pub struct ApiResponse<T> {
 pub struct Meeting {
     pub id: String,
     pub title: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub folder_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -629,6 +632,9 @@ pub async fn api_get_meetings<R: Runtime>(
                 .map(|m| Meeting {
                     id: m.id,
                     title: m.title,
+                    created_at: m.created_at.0.to_rfc3339(),
+                    updated_at: m.updated_at.0.to_rfc3339(),
+                    folder_path: m.folder_path,
                 })
                 .collect();
             Ok(result)

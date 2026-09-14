@@ -1,40 +1,42 @@
-# Hush Speedup Campaign
+# Speedup Proof: Meetings Library N+1
 
 ## Verdict
 
-**COMPLETE.** The campaign found and retained one measurable optimization, then completed five consecutive candidate proofs with no credible behavior-preserving improvement.
+PROVEN. The Meetings library now uses metadata already loaded by the initial Rust query instead of issuing one metadata IPC call per meeting.
 
-## Retained optimization
+## Before and after
 
-The New Meeting page no longer runs a duplicate one-second recording-state IPC poll. It consumes the existing RecordingStateProvider lifecycle synchronization.
+For 100 meetings, measured across 2 warmups and 7 iterations:
 
-- Before: 182 recording-state IPC calls in a 60-second active lifecycle
-- After: 121 calls
-- Reduction: 33.52%
-- Commit: 2e2e816
+- Before: 101 IPC calls
+- After: 1 IPC call
+- Removed: 100 calls
+- Reduction: 99.01%
 
-## Candidate ledger
+Scaling remains one initial call regardless of meeting count: 1, 11, 51, 101, and 501 calls before for 0, 10, 50, 100, and 500 meetings respectively; 1 call after in each non-empty case.
 
-| Run | Candidate | Verdict | Result |
-| --- | --- | --- | --- |
-| 1 | Remove duplicate New Meeting polling | PROVEN | 182 to 121 IPC calls |
-| 2 | Skip unchanged context commits | INCONCLUSIVE | Duration fields change every 500ms; only 0.83% commit reduction |
-| 3 | Consolidate main and Flow Bar providers | REJECTED | Separate WebViews require separate providers |
-| 4 | Serialize summary polling | INCONCLUSIVE | 12 requests either way under representative latency |
-| 5 | Replace transcript streaming timer | INCONCLUSIVE | Same 48 visible-text updates required |
-| 6 | Slow recording-state polling to 1s | REJECTED | 50% fewer polls, but breaks the existing 500ms feedback contract |
+## Changes
 
-Runs 2 through 6 are the required five consecutive no-win or behavior-regression results after the retained optimization.
+- The Rust api_get_meetings payload now includes created_at, updated_at, and folder_path, which were already loaded by SELECT FROM meetings.
+- The Meetings page hydrates rows directly from that payload.
+- Added a focused regression benchmark preventing the N+1 metadata loop from returning.
 
 ## Verification
 
 - Focused benchmark: PASS
-- Frontend tests: PASS, 79/79
+- Frontend tests: PASS, 80/80
 - Typecheck: PASS
 - Production build: PASS
 - git diff --check: PASS
-- Remote push: PASS to fork/codex/hush-product-foundation
+- Rust check: NOT RUN because cargo is unavailable on this host
 
-## Limits
+## Files
 
-The later runs are deterministic workload audits and rejection proofs; they made no source changes. Native runtime recording QA was not rerun after the hook-only optimization.
+- api.rs: /Users/Henrydev/Developer/Hush/frontend/src-tauri/src/api/api.rs:69
+- page.tsx: /Users/Henrydev/Developer/Hush/frontend/src/app/meetings/page.tsx:115
+- meeting-history.ts: /Users/Henrydev/Developer/Hush/frontend/src/lib/meeting-history.ts:6
+- meetings-load-performance.test.mjs: /Users/Henrydev/Developer/Hush/frontend/tests/lib/meetings-load-performance.test.mjs:1
+
+## Remaining campaign
+
+This is run 1 of the new autonomous campaign. Five consecutive no-win proofs are still required before stopping.

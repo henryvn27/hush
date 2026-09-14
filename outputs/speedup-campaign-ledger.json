@@ -1,15 +1,12 @@
 {
-  "campaignStatus": "COMPLETE",
-  "firstOptimization": {"verdict":"PROVEN","commit":"2e2e816","baselineIpcCalls":182,"optimizedIpcCalls":121,"reductionPercent":33.52,"files":["frontend/src/hooks/useRecordingStateSync.ts","frontend/tests/lib/recording-state-sync-performance.test.mjs"]},
-  "consecutiveNoWinRunsAfterFirstOptimization": 5,
-  "runs": [
-    {"run":1,"candidate":"Remove duplicated New Meeting recording-state polling","verdict":"PROVEN","evidence":"60s lifecycle, 2 warmups, 7 measured iterations; 182 to 121 IPC calls."},
-    {"run":2,"candidate":"Skip unchanged RecordingStateContext commits","verdict":"INCONCLUSIVE_NO_WIN","evidence":"Native recording_duration and active_duration advance every 500ms; representative active lifecycle reduced commits by only 0.83% (121 to 120), below a credible product-level win."},
-    {"run":3,"candidate":"Consolidate main-window and Flow Bar recording providers","verdict":"REJECTED_BEHAVIOR_REGRESSION","evidence":"The Flow Bar is a separate WebView and requires its own provider; removing it breaks synchronization boundaries. Required polling remains 120 + 120."},
-    {"run":4,"candidate":"Serialize summary polling with a completion-aware timer","verdict":"INCONCLUSIVE_NO_WIN","evidence":"Representative 60s workload with 5s cadence and 500ms response produced 12 requests either way and no overlap."},
-    {"run":5,"candidate":"Replace transcript streaming interval with a different timer","verdict":"INCONCLUSIVE_NO_WIN","evidence":"Representative 240-character segment preserved 48 visible-text updates; no work reduction without changing the streaming experience."},
-    {"run":6,"candidate":"Reduce RecordingStateContext polling cadence from 500ms to 1000ms","verdict":"REJECTED_BEHAVIOR_REGRESSION","evidence":"Would reduce polls by 50% (120 to 60 per minute) but violates the existing 500ms duration/state feedback contract."}
-  ],
-  "verification":{"focusedBenchmark":"PASS","frontendTests":"PASS (79/79)","typecheck":"PASS","productionBuild":"PASS","diffCheck":"PASS","remotePush":"PASS (fork/codex/hush-product-foundation)"},
-  "limitations":["Runs 2-6 are deterministic workload audits and rejection proofs; they intentionally made no source changes.","Native runtime recording QA was not rerun after the hook-only optimization."]
+  "campaigns": [
+    {"name":"Prior recording-state campaign","status":"COMPLETE","retainedCommit":"2e2e816","retainedReductionPercent":33.52,"consecutiveNoWinRuns":5},
+    {
+      "name":"Autonomous repository speedup campaign",
+      "status":"ACTIVE",
+      "started":"2026-09-14",
+      "runs":[{"number":1,"candidate":"Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","baselineIpcCalls":101,"optimizedIpcCalls":1,"reductionPercent":99.01,"verification":["focused benchmark","80 frontend tests","typecheck","production build"]}],
+      "consecutiveNoWinRuns":0
+    }
+  ]
 }

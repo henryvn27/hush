@@ -19,8 +19,8 @@ import {
   filterMeetingRows,
   type MeetingSortOrder,
   type SavedMeeting,
-  type SavedMeetingMetadata,
   type SavedMeetingRow,
+  type SavedMeetingWithMetadata,
   sortMeetingRows,
   type TranscriptSearchHit,
 } from '@/lib/meeting-history';
@@ -112,21 +112,20 @@ export default function MeetingsPage() {
     setLoadError(null);
 
     try {
-      const meetings = await invoke<SavedMeeting[]>('api_get_meetings');
-      const metadataResults = await Promise.allSettled(
-        meetings.map((meeting) => invoke<SavedMeetingMetadata>('api_get_meeting_metadata', {
-          meetingId: meeting.id,
-        })),
-      );
-      const hydratedRows = meetings.map((meeting, index) => createMeetingRow(
+      const meetings = await invoke<SavedMeetingWithMetadata[]>('api_get_meetings');
+      const hydratedRows = meetings.map((meeting) => createMeetingRow(
         meeting,
-        metadataResults[index].status === 'fulfilled'
-          ? metadataResults[index].value
-          : null,
+        {
+          id: meeting.id,
+          title: meeting.title,
+          created_at: meeting.created_at,
+          updated_at: meeting.updated_at,
+          folder_path: meeting.folder_path,
+        },
       ));
 
       setRows(hydratedRows);
-      setMetadataFailureCount(metadataResults.filter((result) => result.status === 'rejected').length);
+      setMetadataFailureCount(0);
     } catch (error) {
       console.error('Failed to load saved meetings:', error);
       setRows([]);

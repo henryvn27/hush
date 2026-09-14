@@ -3,6 +3,12 @@ export interface SavedMeeting {
   title: string;
 }
 
+export interface SavedMeetingWithMetadata extends SavedMeeting {
+  created_at: string;
+  updated_at: string;
+  folder_path?: string;
+}
+
 export interface SavedMeetingMetadata extends SavedMeeting {
   created_at: string;
   updated_at: string;
