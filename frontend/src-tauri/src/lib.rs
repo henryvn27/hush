@@ -582,6 +582,7 @@ async fn start_recording_with_devices_and_meeting<R: Runtime>(
 #[tauri::command]
 async fn flow_bar_start_recording<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
     log_info!("Starting recording from the native Flow Bar command");
+    audio::transcription::validate_transcription_model_ready(&app).await?;
     // The non-activating Flow Bar can start dictation without routing through
     // the main WebView. Capture the current destination first so a completed
     // dictation can still be inserted into the app the user was working in.
