@@ -1,20 +1,30 @@
-# Speedup Proof: Recording State Synchronization
+# Hush Speedup Campaign
 
 ## Verdict
 
-**PROVEN**. The approved change removes the duplicated New Meeting is_recording poll while preserving the page-level setter contract and disabled-state handling.
+**COMPLETE.** The campaign found and retained one measurable optimization, then completed five consecutive candidate proofs with no credible behavior-preserving improvement.
 
-## Measured result
+## Retained optimization
 
-For a deterministic 60-second active lifecycle after mount:
+The New Meeting page no longer runs a duplicate one-second recording-state IPC poll. It consumes the existing RecordingStateProvider lifecycle synchronization.
 
-- Baseline: 182 recording-state IPC calls
-- Optimized: 121 recording-state IPC calls
-- Removed: 61 calls
+- Before: 182 recording-state IPC calls in a 60-second active lifecycle
+- After: 121 calls
 - Reduction: 33.52%
-- Benchmark: 2 warmups and 7 measured iterations
+- Commit: 2e2e816
 
-The remaining calls are the existing RecordingStateProvider initial reconciliation plus its active-recording lifecycle polling.
+## Candidate ledger
+
+| Run | Candidate | Verdict | Result |
+| --- | --- | --- | --- |
+| 1 | Remove duplicate New Meeting polling | PROVEN | 182 to 121 IPC calls |
+| 2 | Skip unchanged context commits | INCONCLUSIVE | Duration fields change every 500ms; only 0.83% commit reduction |
+| 3 | Consolidate main and Flow Bar providers | REJECTED | Separate WebViews require separate providers |
+| 4 | Serialize summary polling | INCONCLUSIVE | 12 requests either way under representative latency |
+| 5 | Replace transcript streaming timer | INCONCLUSIVE | Same 48 visible-text updates required |
+| 6 | Slow recording-state polling to 1s | REJECTED | 50% fewer polls, but breaks the existing 500ms feedback contract |
+
+Runs 2 through 6 are the required five consecutive no-win or behavior-regression results after the retained optimization.
 
 ## Verification
 
@@ -23,12 +33,8 @@ The remaining calls are the existing RecordingStateProvider initial reconciliati
 - Typecheck: PASS
 - Production build: PASS
 - git diff --check: PASS
-
-## Scope
-
-- frontend/src/hooks/useRecordingStateSync.ts
-- frontend/tests/lib/recording-state-sync-performance.test.mjs
+- Remote push: PASS to fork/codex/hush-product-foundation
 
 ## Limits
 
-This proof measures deterministic IPC volume, not end-to-end wall-clock latency. Full native recording QA was not rerun for this hook-only change.
+The later runs are deterministic workload audits and rejection proofs; they made no source changes. Native runtime recording QA was not rerun after the hook-only optimization.
