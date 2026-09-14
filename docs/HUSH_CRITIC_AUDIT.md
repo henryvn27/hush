@@ -33,6 +33,7 @@ Hush was materially behind Wispr Flow on the core desktop-dictation workflow. Th
 - Paste last dictation is now fully wired: the Flow Bar event reaches a shared focused-app insertion helper, restores the captured app, and reports clipboard fallback instead of silently doing nothing.
 - Wispr Flow Markdown and Granola CSV notes can be previewed, deduplicated, and imported into local Hush history without uploading source files.
 - The landing page now uses a real Hush Activity screenshot and factual interaction copy instead of a concept preview; desktop and 390px mobile renders were inspected from the live deployment.
+- Recording readiness now follows the configured transcription provider and selected model: Whisper no longer depends on Parakeet being present, remote providers are not blocked by local-model checks, and the readiness panel uses matching labels. Focused regression tests, TypeScript, and the production frontend build pass.
 
 ## Still Unverified or Blocked
 
