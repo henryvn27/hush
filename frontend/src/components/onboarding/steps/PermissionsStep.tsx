@@ -15,6 +15,47 @@ interface PermissionsStepProps {
 export function PermissionsStep({ onComplete }: PermissionsStepProps) {
   const { setPermissionStatus, setPermissionsSkipped, permissions, completeOnboarding } = useOnboarding();
   const [isPending, setIsPending] = useState(false);
+  const [isTestingCapture, setIsTestingCapture] = useState(false);
+  const [captureTested, setCaptureTested] = useState(false);
+  const [captureTestError, setCaptureTestError] = useState<string | null>(null);
+  const captureTestTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelCaptureTest = useCallback(async () => {
+    if (captureTestTimeoutRef.current) {
+      clearTimeout(captureTestTimeoutRef.current);
+      captureTestTimeoutRef.current = null;
+    }
+
+    try {
+      await invoke('cancel_recording');
+    } catch (error) {
+      console.warn('[PermissionsStep] Could not cancel the capture test:', error);
+    } finally {
+      setIsTestingCapture(false);
+    }
+  }, []);
+
+  useEffect(() => () => {
+    if (captureTestTimeoutRef.current) clearTimeout(captureTestTimeoutRef.current);
+    void invoke('cancel_recording').catch(() => undefined);
+  }, []);
+
+  const handleCaptureTest = async () => {
+    if (isTestingCapture || isPending) return;
+    setCaptureTestError(null);
+    setIsTestingCapture(true);
+
+    try {
+      await invoke('flow_bar_start_recording');
+      setCaptureTested(true);
+      captureTestTimeoutRef.current = setTimeout(() => {
+        void cancelCaptureTest();
+      }, 5_000);
+    } catch (error) {
+      setIsTestingCapture(false);
+      setCaptureTestError(error instanceof Error ? error.message : 'Hush could not start the local capture test.');
+    }
+  };
 
   // Check permissions - only logs current state, doesn't auto-authorize
   // Actual permission checks are done via explicit user actions (clicking Enable)
@@ -199,6 +240,42 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
             isPending={isPending}
             onAction={handleAccessibilityAction}
           />
+        </div>
+
+        <div className="mt-8 border-y border-border py-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-[470px]">
+              <p className="text-[13px] font-medium text-foreground">Try it yourself</p>
+              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                Speak for five seconds to verify that Hush can hear you and start its local engine before you leave setup.
+              </p>
+            </div>
+            <Button
+              variant={isTestingCapture ? 'destructive' : 'outline'}
+              size="sm"
+              onClick={() => void (isTestingCapture ? cancelCaptureTest() : handleCaptureTest())}
+              disabled={!allPermissionsGranted || isPending}
+              className="shrink-0"
+            >
+              {isTestingCapture ? 'Cancel test' : captureTested ? 'Test again' : 'Start test'}
+            </Button>
+          </div>
+          {isTestingCapture && (
+            <div className="mt-4 flex items-center gap-2 text-[11px] text-foreground" role="status">
+              <span className="size-2 animate-pulse rounded-full bg-emerald-500" aria-hidden="true" />
+              Listening locally. Say a short sentence.
+            </div>
+          )}
+          {captureTested && !isTestingCapture && !captureTestError && (
+            <p className="mt-3 text-[11px] text-emerald-600 dark:text-emerald-400" role="status">
+              Capture is ready. Your test audio was discarded.
+            </p>
+          )}
+          {captureTestError && (
+            <p className="mt-3 text-[11px] leading-5 text-destructive" role="alert">
+              {captureTestError}
+            </p>
+          )}
         </div>
 
         {/* Action Buttons */}
