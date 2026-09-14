@@ -1,3 +1,4 @@
+use chrono::{DateTime, NaiveDate, Utc};
 use log::{debug as log_debug, error as log_error, info as log_info, warn as log_warn};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -5,6 +6,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
+use uuid::Uuid;
 
 use crate::{
     audio::recording_preferences::{get_default_recordings_folder, load_recording_preferences},
@@ -67,6 +69,52 @@ pub struct ApiResponse<T> {
 pub struct Meeting {
     pub id: String,
     pub title: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ImportedTranscript {
+    pub text: String,
+    pub timestamp: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ImportedMeeting {
+    pub title: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: Option<String>,
+    #[serde(rename = "summaryMarkdown")]
+    pub summary_markdown: Option<String>,
+    pub transcripts: Vec<ImportedTranscript>,
+    #[serde(rename = "sourceKey")]
+    pub source_key: String,
+    pub source: String,
+    #[serde(rename = "originalName")]
+    pub original_name: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ImportedMeetingsResponse {
+    pub imported: usize,
+    pub skipped_duplicates: usize,
+    #[serde(rename = "meetingIds")]
+    pub meeting_ids: Vec<String>,
+}
+
+fn parse_imported_date(value: Option<&str>) -> DateTime<Utc> {
+    value
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .and_then(|value| {
+            DateTime::parse_from_rfc3339(value)
+                .map(|date| date.with_timezone(&Utc))
+                .or_else(|_| {
+                    NaiveDate::parse_from_str(value, "%Y-%m-%d")
+                        .map(|date| date.and_hms_opt(12, 0, 0).expect("valid noon"))
+                        .map(|date| DateTime::<Utc>::from_naive_utc_and_offset(date, Utc))
+                })
+                .ok()
+        })
+        .unwrap_or_else(Utc::now)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -1657,6 +1705,171 @@ pub async fn api_save_transcript<R: Runtime>(
             Err(format!("Failed to save transcript: {}", e))
         }
     }
+}
+
+/// Import meeting notes from local Wispr Flow Markdown, Granola CSV, or a
+/// compatible structured export. The frontend normalizes source formats; this
+/// command only persists the already-reviewed records atomically.
+#[tauri::command]
+pub async fn api_import_meetings(
+    state: tauri::State<'_, AppState>,
+    meetings: Vec<ImportedMeeting>,
+) -> Result<ImportedMeetingsResponse, String> {
+    const MAX_IMPORTS: usize = 1_000;
+
+    if meetings.is_empty() {
+        return Ok(ImportedMeetingsResponse {
+            imported: 0,
+            skipped_duplicates: 0,
+            meeting_ids: Vec::new(),
+        });
+    }
+    if meetings.len() > MAX_IMPORTS {
+        return Err(format!("Hush can import at most {MAX_IMPORTS} meetings at a time"));
+    }
+
+    let pool = state.db_manager.pool();
+    let mut transaction = pool
+        .begin()
+        .await
+        .map_err(|error| format!("Could not start the local import: {error}"))?;
+    let mut imported = 0;
+    let mut skipped_duplicates = 0;
+    let mut meeting_ids = Vec::new();
+
+    for item in meetings {
+        let title = item.title.trim();
+        let source_key = item.source_key.trim();
+        let summary = item
+            .summary_markdown
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty());
+        let transcript_segments = item
+            .transcripts
+            .iter()
+            .filter(|segment| !segment.text.trim().is_empty())
+            .collect::<Vec<_>>();
+
+        if title.is_empty()
+            || source_key.is_empty()
+            || (summary.is_none() && transcript_segments.is_empty())
+        {
+            continue;
+        }
+        if source_key.len() > 512 || title.len() > 500 {
+            continue;
+        }
+
+        let already_imported: Option<(String,)> = sqlx::query_as(
+            "SELECT meeting_id FROM meeting_imports WHERE source_key = ?",
+        )
+        .bind(source_key)
+        .fetch_optional(&mut *transaction)
+        .await
+        .map_err(|error| format!("Could not check imported meetings: {error}"))?;
+
+        if already_imported.is_some() {
+            skipped_duplicates += 1;
+            continue;
+        }
+
+        let meeting_id = format!("meeting-{}", Uuid::new_v4());
+        let created_at = parse_imported_date(item.created_at.as_deref());
+        let transcript_text = transcript_segments
+            .iter()
+            .map(|segment| segment.text.trim())
+            .collect::<Vec<_>>()
+            .join("\n");
+        let chunk_text = if transcript_text.is_empty() {
+            summary.unwrap_or_default().to_string()
+        } else {
+            transcript_text.clone()
+        };
+
+        sqlx::query(
+            "INSERT INTO meetings (id, title, created_at, updated_at, folder_path) VALUES (?, ?, ?, ?, NULL)",
+        )
+        .bind(&meeting_id)
+        .bind(title)
+        .bind(created_at)
+        .bind(created_at)
+        .execute(&mut *transaction)
+        .await
+        .map_err(|error| format!("Could not save imported meeting: {error}"))?;
+
+        for (index, segment) in transcript_segments.iter().enumerate() {
+            let timestamp = segment
+                .timestamp
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("00:{:02}", index.min(59)));
+            sqlx::query(
+                "INSERT INTO transcripts (id, meeting_id, transcript, timestamp) VALUES (?, ?, ?, ?)",
+            )
+            .bind(format!("transcript-{}", Uuid::new_v4()))
+            .bind(&meeting_id)
+            .bind(segment.text.trim())
+            .bind(timestamp)
+            .execute(&mut *transaction)
+            .await
+            .map_err(|error| format!("Could not save imported transcript: {error}"))?;
+        }
+
+        sqlx::query(
+            "INSERT INTO transcript_chunks (meeting_id, meeting_name, transcript_text, model, model_name, chunk_size, overlap, created_at) VALUES (?, ?, ?, 'import', 'Local import', ?, 0, ?)",
+        )
+        .bind(&meeting_id)
+        .bind(title)
+        .bind(&chunk_text)
+        .bind(chunk_text.len() as i64)
+        .bind(created_at)
+        .execute(&mut *transaction)
+        .await
+        .map_err(|error| format!("Could not index imported meeting: {error}"))?;
+
+        if let Some(summary) = summary {
+            let result = serde_json::json!({ "markdown": summary });
+            sqlx::query(
+                "INSERT INTO summary_processes (meeting_id, status, created_at, updated_at, result, chunk_count, processing_time) VALUES (?, 'completed', ?, ?, ?, 1, 0.0)",
+            )
+            .bind(&meeting_id)
+            .bind(created_at)
+            .bind(created_at)
+            .bind(result.to_string())
+            .execute(&mut *transaction)
+            .await
+            .map_err(|error| format!("Could not save imported summary: {error}"))?;
+        }
+
+        sqlx::query(
+            "INSERT INTO meeting_imports (meeting_id, source, source_key, original_name, imported_at) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&meeting_id)
+        .bind(item.source.trim())
+        .bind(source_key)
+        .bind(item.original_name.as_deref())
+        .bind(Utc::now())
+        .execute(&mut *transaction)
+        .await
+        .map_err(|error| format!("Could not record imported meeting: {error}"))?;
+
+        imported += 1;
+        meeting_ids.push(meeting_id);
+    }
+
+    transaction
+        .commit()
+        .await
+        .map_err(|error| format!("Could not finish the local import: {error}"))?;
+
+    Ok(ImportedMeetingsResponse {
+        imported,
+        skipped_duplicates,
+        meeting_ids,
+    })
 }
 
 /// Opens the meeting's recording folder in the system file explorer

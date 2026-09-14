@@ -8,7 +8,8 @@ import AnalyticsProvider from '@/components/AnalyticsProvider'
 import { Toaster, toast } from 'sonner'
 import "sonner/dist/styles.css"
 import { useState, useEffect, useCallback } from 'react'
-import { listen, UnlistenFn } from '@tauri-apps/api/event'
+import { usePathname } from 'next/navigation'
+import { emit, listen, UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { RecordingStateProvider, useRecordingState } from '@/contexts/RecordingStateContext'
@@ -22,8 +23,14 @@ import { DownloadProgressToastProvider } from '@/components/shared/DownloadProgr
 import { UpdateCheckProvider } from '@/components/UpdateCheckProvider'
 import { RecordingPostProcessingProvider } from '@/contexts/RecordingPostProcessingProvider'
 import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
+import { FlowBar } from '@/components/hush/FlowBar'
+import { ShortcutActivationBridge, ShortcutRuntime } from '@/components/hush/ShortcutRuntime'
+import LandingPage from '@/components/hush/LandingPage'
+import FlowBarWindow from '@/components/hush/FlowBarWindow'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
+import { readLastTranscript } from '@/lib/last-transcript'
+import { insertIntoFocusedApp } from '@/lib/focused-app-insertion'
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
 import AnalyticsDataModal from '@/components/AnalyticsDataModal'
 import { bypassOnboardingForNativeQa, isBrowserQaMode, isNativeQaMode, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
@@ -89,8 +96,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [showOnboarding, setShowOnboarding] = useState(!bypassOnboardingForNativeQa)
-  const [, setOnboardingCompleted] = useState(bypassOnboardingForNativeQa)
+  // Browser QA uses the same deterministic completed shell as the isolated
+  // native routes launcher, so the first render cannot hydrate into onboarding.
+  const shouldBypassOnboarding = bypassOnboardingForNativeQa || isBrowserQaMode
+  const [showOnboarding, setShowOnboarding] = useState(!shouldBypassOnboarding)
+  const [, setOnboardingCompleted] = useState(shouldBypassOnboarding)
+  const pathname = usePathname()
+  const isLandingPage = pathname === '/landing'
+  const isFlowBarWindow = pathname === '/flow-bar'
 
   // Import audio state
   const [showDropOverlay, setShowDropOverlay] = useState(false)
@@ -110,6 +123,42 @@ export default function RootLayout({
   }, [])
 
   useEffect(() => {
+    const pasteLastDictation = async () => {
+      const transcript = readLastTranscript();
+      if (!transcript) {
+        toast.info('No recent dictation', { description: 'Finish a dictation before using Paste last dictation.' });
+        return;
+      }
+
+      try {
+        const result = await insertIntoFocusedApp(transcript);
+        if (result.mode === 'inserted') {
+          toast.success('Dictation inserted', { description: 'The last local transcript was pasted into the focused app.' });
+        } else {
+          toast.warning('Transcript copied instead', { description: 'Allow Hush in macOS Accessibility settings to paste automatically.' });
+        }
+      } catch (error) {
+        toast.error('Could not paste last dictation', {
+          description: error instanceof Error ? error.message : 'Check Hush permissions and try again.',
+        });
+      }
+    };
+
+    window.addEventListener('request-paste-last', pasteLastDictation);
+    return () => window.removeEventListener('request-paste-last', pasteLastDictation);
+  }, [])
+
+  useEffect(() => {
+    if (isLandingPage || isFlowBarWindow) return
+    if (!showOnboarding && '__TAURI_INTERNALS__' in window) {
+      window.localStorage.setItem('hush-onboarding-completed', 'true');
+      void emit('hush-flow-bar-show');
+    }
+  }, [isFlowBarWindow, isLandingPage, showOnboarding]);
+
+  useEffect(() => {
+    if (isLandingPage || isFlowBarWindow) return;
+
     const currentRoute = `${window.location.pathname}${window.location.search}`;
     if (nativeQaRoute && currentRoute !== nativeQaRoute) {
       window.location.assign(nativeQaRoute)
@@ -121,7 +170,7 @@ export default function RootLayout({
       return
     }
 
-    if (bypassOnboardingForNativeQa) {
+    if (shouldBypassOnboarding) {
       console.info('[Layout] Native QA routes mode: opening the real empty workspace')
       return
     }
@@ -146,7 +195,7 @@ export default function RootLayout({
         setShowOnboarding(true)
         setOnboardingCompleted(false)
       })
-  }, [])
+  }, [isFlowBarWindow, isLandingPage, shouldBypassOnboarding])
 
   // Disable context menu in production
   useEffect(() => {
@@ -156,27 +205,6 @@ export default function RootLayout({
       return () => document.removeEventListener('contextmenu', handleContextMenu);
     }
   }, []);
-  useEffect(() => {
-    // Listen for tray recording toggle request
-    const unlisten = listen('request-recording-toggle', () => {
-      console.log('[Layout] Received request-recording-toggle from tray');
-
-      if (showOnboarding) {
-        toast.error("Please complete setup first", {
-          description: "You need to finish onboarding before you can start recording."
-        });
-      } else {
-        // If in main app, forward to useRecordingStart via window event
-        console.log('[Layout] Forwarding to start-recording-from-sidebar');
-        window.dispatchEvent(new CustomEvent('start-recording-from-sidebar'));
-      }
-    });
-
-    return () => {
-      unlisten.then(fn => fn());
-    };
-  }, [showOnboarding]);
-
   // Handle file drop for audio import
   const handleFileDrop = useCallback((paths: string[]) => {
     // Check if beta features are enabled (read from localStorage directly since we're outside ConfigProvider)
@@ -256,7 +284,17 @@ export default function RootLayout({
       cleanedUpRef.current = true;
       unlisteners.forEach((unlisten) => unlisten());
     };
-  }, [showOnboarding, handleFileDrop]);
+  }, [isFlowBarWindow, isLandingPage, showOnboarding, handleFileDrop]);
+
+  useEffect(() => {
+    if (isLandingPage || isFlowBarWindow) return;
+    let unlisten: UnlistenFn | undefined;
+    void listen<{ path?: string }>('hush-main-navigation', (event) => {
+      if (event.payload?.path) window.history.pushState({}, '', event.payload.path);
+      if (event.payload?.path) window.dispatchEvent(new PopStateEvent('popstate'));
+    }).then((cleanup) => { unlisten = cleanup; });
+    return () => unlisten?.();
+  }, [isFlowBarWindow, isLandingPage]);
 
   // Handle import dialog close
   const handleImportDialogClose = useCallback((open: boolean) => {
@@ -281,12 +319,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} data-native-qa={isNativeQaMode && !isBrowserQaMode ? 'true' : undefined} suppressHydrationWarning>
       <head>
-        <title>{process.env.NEXT_PUBLIC_MEETILY_WDIO === 'true' ? 'Meetily Improved QA WebDriver' : 'Meetily Improved'}</title>
-        <meta name="description" content="Private, local-first meeting capture and recall." />
+        <title>{process.env.NEXT_PUBLIC_MEETILY_WDIO === 'true' ? 'Hush QA WebDriver' : 'Hush'}</title>
+        <meta name="description" content="Private, local-first voice capture and meeting memory." />
+        <link rel="icon" href="/hush-mark.png" />
       </head>
       <body className="font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <ThemeProvider>
+        {isLandingPage ? (
+          <LandingPage />
+        ) : isFlowBarWindow ? (
+          <FlowBarWindow />
+        ) : (
         <AnalyticsProvider>
           <RecordingStateProvider>
             <TranscriptProvider>
@@ -298,16 +342,21 @@ export default function RootLayout({
                         <TooltipProvider>
                           <RecordingPostProcessingProvider>
                             <ImportDialogProvider onOpen={handleOpenImportDialog}>
+                              <ShortcutRuntime />
+                              <ShortcutActivationBridge showOnboarding={showOnboarding} />
                               {/* Download progress toast provider - listens for background downloads */}
                               <DownloadProgressToastProvider />
 
                               {/* Show onboarding or main app */}
-                              {showOnboarding ? (
+                              {showOnboarding && !isLandingPage ? (
                                 <OnboardingFlow onComplete={handleOnboardingComplete} />
+                              ) : isLandingPage ? (
+                                <LandingPage />
                               ) : (
                                 <div className="flex min-h-dvh bg-background">
                                   <Sidebar />
                                   <MainContent>{children}</MainContent>
+                                  <FlowBar />
                                 </div>
                               )}
                               {/* Import audio overlay and dialog */}
@@ -329,6 +378,7 @@ export default function RootLayout({
             </TranscriptProvider>
           </RecordingStateProvider>
         </AnalyticsProvider>
+        )}
         <AppToaster />
         </ThemeProvider>
         {openAnalyticsDetailsForNativeQa && (

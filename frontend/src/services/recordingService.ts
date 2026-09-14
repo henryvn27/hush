@@ -90,6 +90,10 @@ export class RecordingService {
     });
   }
 
+  async cancelRecording(): Promise<void> {
+    return invoke('cancel_recording');
+  }
+
   /**
    * Pause active recording
    * @returns Promise<void>

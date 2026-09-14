@@ -1,10 +1,10 @@
 [package]
 name = "meetily"
 version = "0.5.0"
-description = "Meetily Improved local-first desktop meeting workspace"
+description = "Hush local-first desktop voice and meeting workspace"
 authors = ["Sujith S"]
 license = "MIT"
-repository = "https://github.com/henryvn27/meetily_improved"
+repository = "https://github.com/henryvn27/hush"
 edition = "2021"
 rust-version = "1.88"
 
@@ -153,6 +153,7 @@ tauri-plugin-notification = "2.3.1"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-updater = "2.3.0"
 tauri-plugin-process = "2.3.0"
+tauri-plugin-global-shortcut = "2.3.2"
 tauri-plugin-wdio = { version = "=1.2.0", optional = true }
 tauri-plugin-wdio-webdriver = { version = "=1.2.0", optional = true }
 
@@ -170,7 +171,7 @@ anyhow = "1.0"
 time = { version = "0.3", features = ["formatting"] }
 reqwest = { version = "0.13", features = ["multipart", "json"] }
 core-graphics = "0.23"
-cidre = { git = "https://github.com/yury/cidre", rev = "a9587fa", features = ["av", "blocks"] }
+cidre = { git = "https://github.com/yury/cidre", rev = "a9587fa", features = ["av", "app", "blocks"] }
 dasp = "0.11.0"
 futures-channel = "0.3.31"
 

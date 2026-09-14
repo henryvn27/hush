@@ -35,7 +35,7 @@ export function SetupOverviewStep() {
     {
       icon: CpuChipIcon,
       type: 'summarization',
-      title: 'Download Summarization Engine',
+      title: 'Add local summaries later',
     },
   ];
 
@@ -46,7 +46,7 @@ export function SetupOverviewStep() {
   return (
     <OnboardingContainer
       title="Set up local intelligence."
-      description="Download the transcription and summary models Meetily uses on this device."
+      description="Install voice capture now. Add local summaries later when you actually need them."
       step={2}
       totalSteps={isMac ? 4 : 3}
     >
@@ -81,7 +81,9 @@ export function SetupOverviewStep() {
                         )}
                         </h3>
                   </div>
-                  <span className="text-[11px] text-muted-foreground">Included</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {step.type === 'summarization' ? 'Optional' : 'Required'}
+                  </span>
                 </div>
               );
             })}
@@ -95,11 +97,11 @@ export function SetupOverviewStep() {
             onClick={handleContinue}
             className="h-9"
           >
-            Download models <ArrowRightIcon className="size-4" />
+            Download voice engine <ArrowRightIcon className="size-4" />
           </Button>
           <div>
             <a
-              href="https://github.com/henryvn27/meetily_improved/issues"
+              href="https://github.com/henryvn27/hush/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"

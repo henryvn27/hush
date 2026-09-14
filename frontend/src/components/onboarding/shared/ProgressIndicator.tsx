@@ -9,6 +9,7 @@ interface ProgressIndicatorProps {
 
 export function ProgressIndicator({ current, total, onStepClick }: ProgressIndicatorProps) {
   const visibleSteps = Array.from({ length: total }, (_, i) => i + 1);
+  const stepNames = ['Welcome', 'Privacy', 'Models', 'Access'];
 
   return (
     <nav aria-label="Setup progress">
@@ -25,15 +26,16 @@ export function ProgressIndicator({ current, total, onStepClick }: ProgressIndic
                 disabled={!isClickable}
                 aria-label={`Setup step ${step}${isActive ? ', current' : isCompleted ? ', completed' : ''}`}
                 aria-current={isActive ? 'step' : undefined}
-                className={`grid size-6 place-items-center rounded-full border text-[10px] font-semibold transition-colors ${
+                className={`flex h-7 items-center gap-1.5 rounded-full border px-2 text-[10px] font-semibold transition-colors ${
                   isCompleted ? 'border-success/35 bg-success/10 text-success' : isActive ? 'border-foreground bg-foreground text-background' : 'border-border bg-transparent text-muted-foreground'
                 } ${isClickable ? 'cursor-pointer hover:bg-secondary' : 'cursor-default'}`}
               >
                 {isCompleted ? (
                   <CheckIcon className="size-3.5" />
                 ) : (
-                  step
+                  <span>{step}</span>
                 )}
+                <span className="font-mono text-[0.5625rem] font-medium uppercase tracking-[0.08em]">{stepNames[index]}</span>
               </button>
 
               {/* Connector Line */}

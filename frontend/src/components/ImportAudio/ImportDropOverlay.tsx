@@ -18,7 +18,7 @@ export function ImportDropOverlay({ visible }: ImportDropOverlayProps) {
           <DocumentArrowDownIcon className="size-6" aria-hidden="true" />
         </span>
         <p className="mt-5 text-xl font-semibold tracking-[-0.02em] text-foreground">Drop one recording to import</p>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Meetily will validate the file before any local transcription begins.</p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Hush will validate the file before any local transcription begins.</p>
         <p className="mt-4 text-xs text-muted-foreground">{getAudioFormatsDisplayList()}</p>
         <div className="mt-6 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground"><LockClosedIcon className="size-4" aria-hidden="true" />Processed on this device</div>
       </div>

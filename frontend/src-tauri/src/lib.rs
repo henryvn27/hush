@@ -1,7 +1,10 @@
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::sync::Mutex as StdMutex;
+use std::io::Write;
+use std::process::{Command, Stdio};
+use std::time::Duration;
 // Removed unused import
 
 // Performance optimization: Conditional logging macros for hot paths
@@ -61,10 +64,189 @@ use audio::{list_audio_devices, AudioDevice};
 use log::{error as log_error, info as log_info};
 use notifications::commands::NotificationManagerState;
 use std::sync::Arc;
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tokio::sync::RwLock;
 
 static RECORDING_FLAG: AtomicBool = AtomicBool::new(false);
+
+#[cfg(target_os = "macos")]
+static CAPTURED_FRONTMOST_PID: AtomicI32 = AtomicI32::new(0);
+
+#[cfg(target_os = "macos")]
+unsafe extern "C" {
+    fn CGPreflightPostEventAccess() -> bool;
+}
+
+#[cfg(target_os = "macos")]
+fn install_globe_key_monitor<R: Runtime>(app: &AppHandle<R>) {
+    use cidre::ns::{Event, EventMask, EventModifierFlags};
+
+    let app = app.clone();
+    let mut function_key_down = false;
+    let monitor = Event::add_global_monitor_for_events_matching_mask(
+        EventMask::FLAGS_CHANGED,
+        move |event| {
+            let next_function_key_down = event.modifier_flags().contains(EventModifierFlags::FN);
+            if next_function_key_down == function_key_down {
+                return;
+            }
+
+            function_key_down = next_function_key_down;
+            let state = if function_key_down { "Pressed" } else { "Released" };
+            if let Err(error) = app.emit(
+                "request-globe-dictation",
+                serde_json::json!({ "state": state }),
+            ) {
+                log::error!("Failed to emit Globe/Fn dictation event: {}", error);
+            }
+        },
+    );
+
+    if monitor.is_none() {
+        log::warn!("Globe/Fn monitoring is unavailable; use a configured keybind instead");
+    } else {
+        // AppKit owns the monitor for the life of the process. Keep the token alive
+        // without requiring a non-Send AppKit object in Tauri managed state.
+        std::mem::forget(monitor);
+    }
+}
+
+/// Deliver a finished local transcript to the app that was focused when the
+/// user started dictating. macOS requires Accessibility permission for the
+/// synthetic paste event; the clipboard write remains the explicit fallback.
+#[tauri::command]
+async fn paste_text_at_cursor(text: String) -> Result<(), String> {
+    if text.trim().is_empty() {
+        return Err("There is no transcript to insert".to_string());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if !unsafe { CGPreflightPostEventAccess() } {
+            return Err("Hush needs macOS Accessibility permission to insert into the focused app".to_string());
+        }
+
+        let mut clipboard = Command::new("pbcopy")
+            .stdin(Stdio::piped())
+            .spawn()
+            .map_err(|error| format!("Could not open the macOS clipboard: {error}"))?;
+
+        clipboard
+            .stdin
+            .as_mut()
+            .ok_or_else(|| "Could not access the macOS clipboard pipe".to_string())?
+            .write_all(text.as_bytes())
+            .map_err(|error| format!("Could not write the transcript to the clipboard: {error}"))?;
+
+        let status = clipboard
+            .wait()
+            .map_err(|error| format!("Could not finish the macOS clipboard write: {error}"))?;
+        if !status.success() {
+            return Err("macOS rejected the clipboard write".to_string());
+        }
+
+        std::thread::sleep(Duration::from_millis(70));
+
+        use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation};
+        use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
+
+        let source = CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
+            .map_err(|_| "Could not create a macOS keyboard event source".to_string())?;
+        let key_down = CGEvent::new_keyboard_event(source.clone(), 9, true)
+            .map_err(|_| "Could not create the paste keyboard event".to_string())?;
+        key_down.set_flags(CGEventFlags::CGEventFlagCommand);
+        key_down.post(CGEventTapLocation::HID);
+
+        let key_up = CGEvent::new_keyboard_event(source, 9, false)
+            .map_err(|_| "Could not create the paste release event".to_string())?;
+        key_up.set_flags(CGEventFlags::CGEventFlagCommand);
+        key_up.post(CGEventTapLocation::HID);
+
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = text;
+        Err("Focused-app insertion is currently supported on macOS only".to_string())
+    }
+}
+
+#[tauri::command]
+fn capture_focused_app() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use objc::rc::autoreleasepool;
+        use objc::runtime::Object;
+        use objc::{class, msg_send, sel, sel_impl};
+
+        let pid = autoreleasepool(|| unsafe {
+            let workspace: *mut Object = msg_send![class!(NSWorkspace), sharedWorkspace];
+            let application: *mut Object = msg_send![workspace, frontmostApplication];
+            if application.is_null() {
+                return 0;
+            }
+            msg_send![application, processIdentifier]
+        });
+
+        if pid <= 0 {
+            return Err("Hush could not identify the focused app".to_string());
+        }
+        CAPTURED_FRONTMOST_PID.store(pid, Ordering::SeqCst);
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    Err("Focused-app insertion is currently supported on macOS only".to_string())
+}
+
+#[tauri::command]
+fn focus_captured_app() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use objc::rc::autoreleasepool;
+        use objc::runtime::Object;
+        use objc::{class, msg_send, sel, sel_impl};
+
+        let pid = CAPTURED_FRONTMOST_PID.load(Ordering::SeqCst);
+        if pid <= 0 {
+            return Err("Hush did not capture a focused app for this dictation".to_string());
+        }
+
+        let activated = autoreleasepool(|| unsafe {
+            let application: *mut Object = msg_send![
+                class!(NSRunningApplication),
+                runningApplicationWithProcessIdentifier: pid
+            ];
+            if application.is_null() {
+                return false;
+            }
+            let options: u64 = 1; // NSApplicationActivateIgnoringOtherApps
+            msg_send![application, activateWithOptions: options]
+        });
+
+        if !activated {
+            return Err("Hush could not return focus to the original app".to_string());
+        }
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    Err("Focused-app insertion is currently supported on macOS only".to_string())
+}
+
+/// Report whether macOS will accept the synthetic paste event used for focused-app insertion.
+/// This is a read-only preflight; it never prompts or changes system permissions.
+#[tauri::command]
+fn check_accessibility_permission() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        return unsafe { CGPreflightPostEventAccess() };
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    false
+}
 
 // Global language preference storage (default to "auto-translate" for automatic translation to English)
 static LANGUAGE_PREFERENCE: Lazy<StdMutex<String>> =
@@ -385,6 +567,12 @@ async fn start_recording_with_devices_and_meeting<R: Runtime>(
 }
 
 #[tauri::command]
+async fn flow_bar_start_recording<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
+    log_info!("Starting recording from the native Flow Bar command");
+    start_recording(app, None, None, None).await
+}
+
+#[tauri::command]
 async fn set_language_preference(language: String) -> Result<(), String> {
     let mut lang_pref = LANGUAGE_PREFERENCE
         .lock()
@@ -416,18 +604,46 @@ pub fn run() {
 
     #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
     {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            log_info!(
-                "Second app instance requested with args: {:?}, cwd: {:?}",
-                args,
-                cwd
-            );
+        // Keep normal releases single-instance, but allow an explicit local QA
+        // launch when an older bundle is still running after a path migration.
+        let qa_multiple_instances = std::env::var_os("HUSH_ALLOW_MULTIPLE_INSTANCES").is_some()
+            || std::env::args().any(|arg| arg == "--hush-qa-multiple");
+        if !qa_multiple_instances {
+            builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+                log_info!(
+                    "Second app instance requested with args: {:?}, cwd: {:?}",
+                    args,
+                    cwd
+                );
 
-            tray::focus_main_window(app);
-        }));
+                tray::focus_main_window(app);
+            }));
+        } else {
+            log::warn!("HUSH_ALLOW_MULTIPLE_INSTANCES is set; single-instance guard is disabled for QA");
+        }
     }
 
     builder
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+
+                    if let Err(error) = app.emit(
+                        "request-recording-toggle",
+                        serde_json::json!({
+                            "shortcut": shortcut.to_string(),
+                            "state": match event.state() {
+                                ShortcutState::Pressed => "Pressed",
+                                ShortcutState::Released => "Released",
+                            }
+                        }),
+                    ) {
+                            log::error!("Failed to emit global dictation shortcut: {}", error);
+                    }
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::default().build())
@@ -444,6 +660,38 @@ pub fn run() {
         )))
         .setup(|_app| {
             log::info!("Application setup complete");
+
+            // The Flow Bar starts hidden so it never flashes during launch. The
+            // native fallback surfaces it even if the main WebView emits its
+            // show event before the separate Flow Bar WebView is ready.
+            if let Some(flow_bar) = _app.get_webview_window("flow-bar") {
+                let monitor = flow_bar
+                    .current_monitor()
+                    .ok()
+                    .flatten()
+                    .or_else(|| flow_bar.primary_monitor().ok().flatten());
+                if let (Some(monitor), Ok(window_size)) = (monitor, flow_bar.outer_size()) {
+                    let work_area = monitor.work_area();
+                    let bottom_padding = (24.0 * monitor.scale_factor()) as i32;
+                    let x = work_area.position.x
+                        + ((work_area.size.width.saturating_sub(window_size.width)) / 2) as i32;
+                    let y = work_area.position.y
+                        + work_area.size.height as i32
+                        - window_size.height as i32
+                        - bottom_padding;
+                    if let Err(error) = flow_bar.set_position(tauri::Position::Physical(
+                        tauri::PhysicalPosition::new(x, y),
+                    )) {
+                        log::warn!("Failed to position Flow Bar during startup: {}", error);
+                    }
+                }
+                if let Err(error) = flow_bar.show() {
+                    log::warn!("Failed to show Flow Bar during startup: {}", error);
+                }
+            }
+
+            #[cfg(target_os = "macos")]
+            install_globe_key_monitor(_app.handle());
 
             if tray::menu_bar_enabled(_app.handle()) {
                 if let Err(e) = tray::create_tray(_app.handle()) {
@@ -551,7 +799,12 @@ pub fn run() {
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 #[cfg(target_os = "macos")]
-                let _ = (window, api);
+                if window.label() == "main" {
+                    api.prevent_close();
+                    if let Err(e) = window.hide() {
+                        log::error!("Failed to hide main window on close request: {}", e);
+                    }
+                }
 
                 #[cfg(not(target_os = "macos"))]
                 if window.label() == "main" {
@@ -566,7 +819,13 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             start_recording,
+            flow_bar_start_recording,
             stop_recording,
+            audio::recording_commands::cancel_recording,
+            paste_text_at_cursor,
+            capture_focused_app,
+            focus_captured_app,
+            check_accessibility_permission,
             is_recording,
             get_transcription_status,
             read_audio_file,
@@ -692,6 +951,7 @@ pub fn run() {
             api::api_save_meeting_title,
             api::api_export_meeting_locally,
             api::api_save_transcript,
+            api::api_import_meetings,
             api::open_meeting_folder,
             api::test_backend_connection,
             api::debug_backend_connection,

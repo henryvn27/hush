@@ -20,6 +20,8 @@ test('native QA modes isolate data and never auto-start model downloads', async 
   assert.match(layout, /window\.location\.replace\('\/meeting-details'\)/);
   assert.match(onboarding, /initializeNativeQaDatabase/);
   assert.match(onboarding, /never scan or import a person's legacy Meetily data/);
-  assert.equal((downloadStep.match(/if \(isNativeQaMode\) return;/g) ?? []).length, 2);
+  assert.equal((downloadStep.match(/if \(isNativeQaMode\) return;/g) ?? []).length, 1);
+  assert.doesNotMatch(downloadStep, /summaryDownloadStartedRef|startSummaryDownload\s*=|summaryModel:\s*selectedSummaryModel/);
+  assert.match(downloadStep, /includeSummary:\s*false/);
   assert.match(paginatedTranscripts, /if \(!meetingId\) \{\s*reset\(\);[\s\S]*setIsLoading\(false\);/);
 });

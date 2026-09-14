@@ -16,8 +16,8 @@ Meetily Improved is an independent MIT-licensed fork of [Zackriya Solutions' Mee
 ## Install
 
 ```bash
-git clone https://github.com/henryvn27/meetily_improved.git
-cd meetily_improved/frontend
+git clone https://github.com/henryvn27/hush.git
+cd hush/frontend
 pnpm install --frozen-lockfile
 ```
 

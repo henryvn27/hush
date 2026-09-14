@@ -70,7 +70,7 @@ export default function ChatPage() {
           )}
         />
       )}
-      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured local model." />}
+      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Hush is sending matching local excerpts to your configured local model." />}
       {error && <AppState className="mt-6" kind="model" title="Local recall is unavailable" description={error} action={<Button variant="outline" onClick={() => router.push('/settings')}><MeetilyGlyph name="settings" className="size-4" />Review local model settings</Button>} />}
       {result && <section className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <article aria-label="Local meeting answer" className="prose prose-neutral min-w-0 max-w-none text-[0.975rem] leading-7 dark:prose-invert prose-headings:font-semibold prose-headings:tracking-[-0.02em] prose-p:leading-7 prose-li:my-1 prose-strong:font-semibold"><ReactMarkdown remarkPlugins={[remarkGfm]}>{result.answer}</ReactMarkdown></article>

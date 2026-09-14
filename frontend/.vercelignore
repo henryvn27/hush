@@ -1,0 +1,12 @@
+# Native build products are delivered as explicit public downloads, not source files.
+src-tauri/target
+src-tauri/.tmp
+out
+.next
+public/downloads/Hush-0.5.0-aarch64-app.zip
+public/downloads/Hush-0.5.0-aarch64.dmg
+public/downloads/Hush-0.5.0-aarch64-fresh.dmg
+.playwright-mcp
+
+public/downloads/Hush-0.5.0-aarch64-final.zip
+public/downloads/Hush-0.5.0-aarch64-final.dmg

@@ -22,7 +22,7 @@ export function AppearanceSettings() {
     <section aria-labelledby="appearance-heading" className="border-b border-border py-6 first:pt-0">
       <div className="mb-4">
         <h3 id="appearance-heading" className="text-sm font-semibold text-foreground">Appearance</h3>
-        <p className="mt-1 text-sm text-muted-foreground">Choose how Meetily Improved looks on this Mac.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Choose how Hush looks on this Mac.</p>
       </div>
       <div role="radiogroup" aria-label="Appearance" className="grid gap-2 sm:grid-cols-3">
         {options.map((option) => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { emit } from '@tauri-apps/api/event';
 import { useTranscripts } from '@/contexts/TranscriptContext';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -88,7 +89,7 @@ export function useRecordingStart(
       if (granted) return true;
 
       toast.error('Microphone access is required', {
-        description: 'Allow Meetily to use your microphone in System Settings before starting a recording.',
+        description: 'Allow Hush to use your microphone in System Settings before starting a recording.',
         duration: 7000,
       });
       return false;
@@ -121,6 +122,18 @@ export function useRecordingStart(
     });
     return false;
   }, [selectedDevices.micDevice, selectedDevices.systemDevice]);
+
+  const captureFocusedAppIfEnabled = useCallback(async () => {
+    if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) return;
+    if (window.localStorage.getItem('hush-insert-at-cursor') !== 'true') return;
+
+    try {
+      await invoke('capture_focused_app');
+    } catch (error) {
+      // A failed capture should not block recording; stop falls back to copying.
+      console.warn('Could not capture the focused app for insertion:', error);
+    }
+  }, []);
 
   // Handle manual recording start (from button click)
   const handleRecordingStart = useCallback(async () => {
@@ -167,6 +180,7 @@ export function useRecordingStart(
 
       // Set STARTING status before initiating backend recording
       setStatus(RecordingStatus.STARTING, 'Initializing recording...');
+      await captureFocusedAppIfEnabled();
 
       // Start the actual backend recording
       console.log('Starting backend recording with meeting:', randomTitle);
@@ -183,6 +197,7 @@ export function useRecordingStart(
       setIsRecording(true); // This will also update the sidebar via the useEffect
       clearTranscripts(); // Clear previous transcripts when starting new recording
       setIsMeetingActive(true);
+      void emit('hush-recording-lifecycle', { status: RecordingStatus.RECORDING });
       Analytics.trackButtonClick('start_recording', 'home_page');
 
       // Show recording notification if enabled
@@ -195,7 +210,7 @@ export function useRecordingStart(
       // Re-throw so RecordingControls can handle device-specific errors
       throw error;
     }
-  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, ensureAudioDeviceReady, selectedDevices, showModal, setStatus, isPostProcessing]);
+  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, ensureAudioDeviceReady, selectedDevices, showModal, setStatus, isPostProcessing, captureFocusedAppIfEnabled]);
 
   // Legacy sidebar auto-start flags must never initiate capture without the New Meeting confirmation surface.
   useEffect(() => {
@@ -257,6 +272,7 @@ export function useRecordingStart(
 
             // Set STARTING status before initiating backend recording
             setStatus(RecordingStatus.STARTING, 'Initializing recording...');
+            await captureFocusedAppIfEnabled();
 
             console.log('Auto-starting backend recording with meeting:', generatedMeetingTitle);
             const result = await recordingService.startRecordingWithDevices(
@@ -272,6 +288,7 @@ export function useRecordingStart(
             setIsRecording(true);
             clearTranscripts();
             setIsMeetingActive(true);
+            void emit('hush-recording-lifecycle', { status: RecordingStatus.RECORDING });
             Analytics.trackButtonClick('start_recording', 'sidebar_auto');
 
             // Show recording notification if enabled
@@ -305,6 +322,7 @@ export function useRecordingStart(
     showModal,
     setStatus,
     isPostProcessing,
+    captureFocusedAppIfEnabled,
   ]);
 
   // Listen for direct recording trigger from sidebar when already on home page
@@ -358,6 +376,7 @@ export function useRecordingStart(
 
         // Set STARTING status before initiating backend recording
         setStatus(RecordingStatus.STARTING, 'Initializing recording...');
+        await captureFocusedAppIfEnabled();
 
         console.log('Starting backend recording with meeting:', generatedMeetingTitle);
         const result = await recordingService.startRecordingWithDevices(
@@ -373,6 +392,7 @@ export function useRecordingStart(
         setIsRecording(true);
         clearTranscripts();
         setIsMeetingActive(true);
+        void emit('hush-recording-lifecycle', { status: RecordingStatus.RECORDING });
         Analytics.trackButtonClick('start_recording', 'sidebar_direct');
 
         // Show recording notification if enabled
@@ -408,6 +428,7 @@ export function useRecordingStart(
     showModal,
     setStatus,
     isPostProcessing,
+    captureFocusedAppIfEnabled,
   ]);
 
   return {

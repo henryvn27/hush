@@ -153,7 +153,7 @@ export default function AnalyticsConsentSwitch() {
 
   const handlePrivacyPolicyClick = async () => {
     try {
-      await invoke('open_external_url', { url: 'https://github.com/henryvn27/meetily_improved#privacy-and-data-boundary' });
+      await invoke('open_external_url', { url: 'https://github.com/henryvn27/hush#privacy-and-data-boundary' });
     } catch (error) {
       console.error('Failed to open privacy policy link:', error);
     }

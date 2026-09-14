@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleExecutable</key>
+    <string>meetily</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.meetily.ai</string>
+    <key>CFBundleName</key>
+    <string>Hush</string>
+    <key>CFBundleDisplayName</key>
+    <string>Hush</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.5.0</string>
+    <key>CFBundleVersion</key>
+    <string>0.5.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.2</string>
     <key>CFBundleIconName</key>
     <string>MeetilyImproved</string>
     <key>NSMicrophoneUsageDescription</key>

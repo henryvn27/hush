@@ -52,6 +52,7 @@
         "check:bundle": "node scripts/check-route-bundle-budget.mjs"
     },
     "dependencies": {
+        "@base-ui/react": "^1.8.0",
         "@blocknote/core": "0.36.0",
         "@blocknote/react": "0.36.0",
         "@blocknote/shadcn": "0.36.0",
@@ -72,6 +73,7 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@tanstack/react-virtual": "^3.13.13",
         "@tauri-apps/api": "^2.6.0",
+        "@tauri-apps/plugin-global-shortcut": "2.3.2",
         "@tauri-apps/plugin-os": "^2.3.2",
         "@tauri-apps/plugin-process": "^2.3.0",
         "@tauri-apps/plugin-store": "^2.4.0",

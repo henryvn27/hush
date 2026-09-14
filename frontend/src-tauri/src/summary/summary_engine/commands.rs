@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 
 use super::model_manager::{DownloadProgress, ModelInfo, ModelManager};
 
-const QWEN35_4B_RECOMMENDED_RAM_GB: u64 = 14;
+const QWEN35_4B_RECOMMENDED_RAM_GB: u64 = 32;
 
 pub(crate) fn summary_model_priority(model_name: &str) -> u8 {
     match model_name {
@@ -385,9 +385,7 @@ pub async fn init_model_manager_at_startup<R: Runtime>(app: &AppHandle<R>) -> Re
 }
 
 /// Get recommended summary model based on platform and system RAM.
-/// macOS → qwen3.5:4b
-/// non-macOS + <8GB RAM → qwen3.5:2b
-/// non-macOS + >=8GB RAM → qwen3.5:4b
+/// Use the smaller Qwen 2B model by default; reserve the 4B model for high-memory systems.
 #[tauri::command]
 pub async fn builtin_ai_get_recommended_model() -> Result<String, String> {
     let recommended = get_recommended_summary_model_for_current_system()?;
@@ -420,9 +418,10 @@ mod tests {
     }
 
     #[test]
-    fn recommended_summary_model_uses_qwen4b_at_effective_16gb_floor() {
-        assert_eq!(recommend_summary_model(true, 14), "qwen3.5:4b");
-        assert_eq!(recommend_summary_model(false, 14), "qwen3.5:4b");
+    fn recommended_summary_model_uses_qwen2b_until_high_memory_floor() {
+        assert_eq!(recommend_summary_model(true, 14), "qwen3.5:2b");
+        assert_eq!(recommend_summary_model(false, 14), "qwen3.5:2b");
+        assert_eq!(recommend_summary_model(true, 32), "qwen3.5:4b");
     }
 
     #[test]

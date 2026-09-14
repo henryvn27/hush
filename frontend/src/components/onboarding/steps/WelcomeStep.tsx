@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRightIcon, CpuChipIcon, LockClosedIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
@@ -10,55 +9,66 @@ export function WelcomeStep() {
   const features = [
     {
       icon: LockClosedIcon,
-      title: 'Private on your Mac',
-      description: 'Recordings and transcripts remain on this device.',
+      title: 'Private by default',
+      description: 'No account, upload, or meeting bot. Your words stay on this Mac.',
     },
     {
       icon: SparklesIcon,
-      title: 'Recall what mattered',
-      description: 'Turn transcripts into clear summaries and searchable notes.',
+      title: 'Clean dictation',
+      description: 'Speak naturally and get useful text, not a wall of raw audio.',
     },
     {
       icon: CpuChipIcon,
-      title: 'Works offline',
-      description: 'Local models are included. Remote providers stay optional.',
+      title: 'Works without the cloud',
+      description: 'Local models keep capture available when the network is not.',
     },
   ];
 
   return (
     <OnboardingContainer
-      title="Your meeting workbench."
-      description="Record, transcribe, and revisit meetings with a local-first workflow."
+      title="Private voice, ready in minutes."
+      description="Set up a local voice desk once, then dictate from anywhere you work."
       step={1}
-      hideProgress={true}
+      totalSteps={4}
     >
-      <div className="flex max-w-[680px] flex-col">
-        <div className="divide-y divide-border border-y border-border">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="grid grid-cols-[36px_1fr] gap-4 py-4">
-                <div className="grid size-8 place-items-center rounded-[8px] border border-border bg-card shadow-[0_1px_1px_hsl(var(--shadow-color)/0.04)]">
-                  <Icon className="size-[17px] text-muted-foreground" />
+      <div className="hush-onboarding-welcome">
+        <div className="hush-onboarding-features">
+          <div className="hush-onboarding-feature-list">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="hush-onboarding-feature">
+                  <div className="hush-onboarding-feature-icon">
+                    <Icon className="size-[17px]" />
+                  </div>
+                  <div>
+                    <p>{feature.title}</p>
+                    <span>{feature.description}</span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[13px] font-medium text-foreground">{feature.title}</p>
-                  <p className="mt-1 text-[12px] leading-5 text-muted-foreground">{feature.description}</p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <div className="mt-7 flex items-center gap-4">
+            <Button onClick={goNext} className="h-9 px-4">
+              Continue <ArrowRightIcon className="size-4" />
+            </Button>
+            <p className="text-[11px] text-muted-foreground">About three minutes</p>
+          </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-8 flex items-center gap-4">
-          <Button
-            onClick={goNext}
-            className="h-9 px-4"
-          >
-            Continue <ArrowRightIcon className="size-4" />
-          </Button>
-          <p className="text-[11px] text-muted-foreground">About three minutes</p>
+        <div className="hush-onboarding-preview" aria-label="Hush local dictation preview">
+          <img
+            src="/hush-workspace-preview.png"
+            alt="Hush Activity workspace with the compact Flow Bar visible"
+            className="hush-onboarding-preview-image"
+          />
+          <div className="hush-onboarding-preview-shade" aria-hidden="true" />
+          <p className="hush-onboarding-preview-kicker">Ready when you are</p>
+          <div className="hush-onboarding-preview-caption">
+            <span>Activity</span>
+            <span>Local voice desk</span>
+          </div>
         </div>
       </div>
     </OnboardingContainer>

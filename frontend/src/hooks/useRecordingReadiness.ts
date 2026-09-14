@@ -67,7 +67,7 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
           state: models.some(isDownloadingModel) ? 'downloading' as const : 'missing' as const,
           error: null,
         };
-      })(), 'Local-model check timed out. Restart Meetily, then try again.'),
+      })(), 'Local-model check timed out. Restart Hush, then try again.'),
     ]);
 
     const audioDevices = audioResult.status === 'fulfilled' ? audioResult.value : [];

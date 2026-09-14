@@ -131,7 +131,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
 
   return (
     <OnboardingContainer
-      title="Let Meetily hear the meeting."
+      title="Let Hush hear the meeting."
       description="Allow microphone and system-audio access before you start local capture."
       step={4}
       hideProgress={true}

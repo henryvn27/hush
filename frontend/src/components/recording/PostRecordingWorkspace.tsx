@@ -1,7 +1,9 @@
 'use client';
 
 import { ArrowPathIcon, CheckIcon, CircleStackIcon, DocumentTextIcon, ExclamationTriangleIcon, ShieldCheckIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import { Surface } from '@/components/app-shell/Surface';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RecordingStatus, useRecordingState } from '@/contexts/RecordingStateContext';
 import {
@@ -17,6 +19,12 @@ const steps = [
   { label: 'Saved locally', icon: CircleStackIcon },
 ] as const;
 
+interface PostRecordingWorkspaceProps {
+  hasRecoveryCopy: boolean;
+  onRetryRecovery: () => Promise<void>;
+  onOpenRecovery: () => void;
+}
+
 function StepState({ state }: { state: PostRecordingStepState }) {
   if (state === 'complete') {
     return <CheckIcon className="size-4" aria-hidden="true" />;
@@ -30,8 +38,9 @@ function StepState({ state }: { state: PostRecordingStepState }) {
   return <span className="size-2 rounded-full bg-current opacity-35" aria-hidden="true" />;
 }
 
-export function PostRecordingWorkspace() {
+export function PostRecordingWorkspace({ hasRecoveryCopy, onRetryRecovery, onOpenRecovery }: PostRecordingWorkspaceProps) {
   const recordingState = useRecordingState();
+  const [isRetrying, setIsRetrying] = useState(false);
   const status = recordingState.status as PostRecordingStatus;
   const presentation = getPostRecordingPresentation(
     status,
@@ -40,6 +49,15 @@ export function PostRecordingWorkspace() {
   );
   const isError = recordingState.status === RecordingStatus.ERROR;
   const isComplete = recordingState.status === RecordingStatus.COMPLETED;
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await onRetryRecovery();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
@@ -118,12 +136,26 @@ export function PostRecordingWorkspace() {
             <ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <p>
               {isError
-                ? 'Recovery data remains on this device. Keep Meetily open until a supported recovery action is available.'
+                ? 'Your local transcript checkpoint is still on this device. Retry the save or review the recovery copy below.'
                 : isComplete
-                  ? 'The transcript and meeting metadata are saved in Meetily’s local database.'
-                  : 'Keep Meetily open. Transcript recovery data remains on this device until the local database save completes.'}
+                  ? 'The transcript and meeting metadata are saved in Hush’s local database.'
+                  : 'Keep Hush open. Transcript recovery data remains on this device until the local database save completes.'}
             </p>
           </div>
+
+          {isError && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/70 px-6 py-4 sm:px-8">
+              <Button onClick={() => void handleRetry()} disabled={isRetrying}>
+                {isRetrying && <ArrowPathIcon className="mr-2 size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+                {hasRecoveryCopy ? 'Retry save' : 'Check for recovery'}
+              </Button>
+              {hasRecoveryCopy && (
+                <Button variant="outline" onClick={onOpenRecovery} disabled={isRetrying}>
+                  Review recovery
+                </Button>
+              )}
+            </div>
+          )}
         </Surface>
       </div>
     </div>

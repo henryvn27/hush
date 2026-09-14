@@ -4,7 +4,7 @@ Thank you for helping build a calmer, privacy-first meeting workspace. Meetily I
 
 ## Before you start
 
-- Search [existing issues](https://github.com/henryvn27/meetily_improved/issues) before opening a duplicate.
+- Search [existing issues](https://github.com/henryvn27/hush/issues) before opening a duplicate.
 - For a substantial feature or architectural change, open an issue before investing in an implementation.
 - Keep meeting data local by default. New cloud, account, calendar, telemetry, or filesystem scope requires an explicit design and privacy review.
 - Never add fake meetings, AI answers, citations, progress, screenshots, or metrics to product or release evidence.
@@ -17,14 +17,14 @@ The public integration branch is `main`. Create a focused branch from the latest
 1. Fork and clone the repository:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/meetily_improved.git
-   cd meetily_improved
+   git clone https://github.com/YOUR_USERNAME/hush.git
+   cd hush
    ```
 
 2. Add this repository as upstream:
 
    ```bash
-   git remote add upstream https://github.com/henryvn27/meetily_improved.git
+   git remote add upstream https://github.com/henryvn27/hush.git
    ```
 
 3. Create a branch from `main`:
@@ -81,7 +81,7 @@ docs: clarify macOS source build
 
 ## Getting help
 
-Use [GitHub Discussions](https://github.com/henryvn27/meetily_improved/discussions) for questions and ideas. Use [GitHub Issues](https://github.com/henryvn27/meetily_improved/issues) for reproducible bugs and accepted work.
+Use [GitHub Discussions](https://github.com/henryvn27/hush/discussions) for questions and ideas. Use [GitHub Issues](https://github.com/henryvn27/hush/issues) for reproducible bugs and accepted work.
 
 ## License
 

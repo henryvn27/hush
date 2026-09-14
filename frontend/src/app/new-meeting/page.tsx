@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateContext';
@@ -15,7 +15,7 @@ import { useTranscriptRecovery } from '@/hooks/useTranscriptRecovery';
 import { TranscriptRecovery } from '@/components/TranscriptRecovery';
 import { indexedDBService } from '@/services/indexedDBService';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PreRecordingWorkspace } from '@/components/recording/PreRecordingWorkspace';
 import { ActiveRecordingWorkspace } from '@/components/recording/ActiveRecordingWorkspace';
 import { PostRecordingWorkspace } from '@/components/recording/PostRecordingWorkspace';
@@ -26,6 +26,7 @@ export default function NewMeetingPage() {
   const [isRecording, setIsRecordingState] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [hasPostRecordingStarted, setHasPostRecordingStarted] = useState(false);
+  const autoStartRequested = useRef(false);
 
   // Use contexts for state management
   const { transcriptModelConfig, selectedDevices } = useConfig();
@@ -56,11 +57,24 @@ export default function NewMeetingPage() {
   } = useTranscriptRecovery();
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Track page view
     Analytics.trackPageView('new_meeting');
   }, []);
+
+  useEffect(() => {
+    if (
+      searchParams.get('autostart') !== '1'
+      || autoStartRequested.current
+      || recordingState.isRecording
+      || status !== RecordingStatus.IDLE
+    ) return;
+
+    autoStartRequested.current = true;
+    void handleRecordingStart();
+  }, [handleRecordingStart, recordingState.isRecording, searchParams, status]);
 
   useEffect(() => {
     if ([
@@ -126,6 +140,12 @@ export default function NewMeetingPage() {
     }
   }, [recoverableMeetings]);
 
+  useEffect(() => {
+    if (status === RecordingStatus.ERROR) {
+      void checkForRecoverableTranscripts();
+    }
+  }, [checkForRecoverableTranscripts, status]);
+
   // Handle recovery with toast notifications and navigation
   const handleRecovery = async (meetingId: string) => {
     try {
@@ -177,6 +197,18 @@ export default function NewMeetingPage() {
     }
   };
 
+  const handleRetryRecovery = async () => {
+    const candidates = await checkForRecoverableTranscripts();
+    const candidate = candidates[0];
+    if (!candidate) {
+      toast.error('No local recovery copy found', {
+        description: 'Hush could not find a checkpoint to retry. The original error is still available above.',
+      });
+      return;
+    }
+    await handleRecovery(candidate.meetingId);
+  };
+
   // Computed values using global status
   const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
   const showPreRecording = !recordingState.isRecording && (
@@ -225,7 +257,11 @@ export default function NewMeetingPage() {
           showModal={showModal}
         />
       ) : (
-        <PostRecordingWorkspace />
+        <PostRecordingWorkspace
+          hasRecoveryCopy={recoverableMeetings.length > 0}
+          onRetryRecovery={handleRetryRecovery}
+          onOpenRecovery={() => setShowRecoveryDialog(true)}
+        />
       )}
     </motion.div>
   );

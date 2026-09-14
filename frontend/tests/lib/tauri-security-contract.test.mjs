@@ -150,16 +150,20 @@ test('the main capability grants only caller-proven core and plugin operations',
   const config = JSON.parse(configSource);
   const main = JSON.parse(capabilitySource);
   const packageJson = JSON.parse(packageSource);
-  assert.deepEqual(config.app.security.capabilities, ['main']);
+  assert.deepEqual(config.app.security.capabilities, ['main', 'flow-bar']);
   assert.equal(main.identifier, 'main');
 
   const expectedPermissions = [
     'main-window-commands',
     'core:app:allow-version',
+    'core:event:allow-emit',
     'core:event:allow-listen',
     'core:event:allow-unlisten',
     'core:path:allow-resolve-directory',
     'core:resources:allow-close',
+    'global-shortcut:allow-is-registered',
+    'global-shortcut:allow-register',
+    'global-shortcut:allow-unregister',
     'store:allow-load',
     'store:allow-get',
     'store:allow-has',

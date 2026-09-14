@@ -16,6 +16,11 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [isMac, setIsMac] = React.useState(false);
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true') {
+      setIsMac(true);
+      return;
+    }
+
     // Check if running on macOS
     const checkPlatform = async () => {
       try {

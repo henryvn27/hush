@@ -24,7 +24,7 @@ export interface UseTranscriptRecoveryReturn {
   recoverableMeetings: MeetingMetadata[];
   isLoading: boolean;
   isRecovering: boolean;
-  checkForRecoverableTranscripts: () => Promise<void>;
+  checkForRecoverableTranscripts: () => Promise<MeetingMetadata[]>;
   recoverMeeting: (meetingId: string) => Promise<{ success: boolean; audioRecoveryStatus?: AudioRecoveryStatus | null; meetingId?: string }>;
   loadMeetingTranscripts: (meetingId: string) => Promise<StoredTranscript[]>;
   deleteRecoverableMeeting: (meetingId: string) => Promise<void>;
@@ -81,9 +81,11 @@ export function useTranscriptRecovery(): UseTranscriptRecoveryReturn {
 
 
       setRecoverableMeetings(meetingsWithAudioStatus);
+      return meetingsWithAudioStatus;
     } catch (error) {
       console.error('Failed to check for recoverable transcripts:', error);
       setRecoverableMeetings([]);
+      return [];
     } finally {
       setIsLoading(false);
     }

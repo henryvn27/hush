@@ -108,7 +108,7 @@ export function getPostRecordingPresentation(
     return {
       eyebrow: 'Audio capture ended',
       title: 'Securing the recording',
-      description: statusMessage || 'Meetily is closing the local audio pipeline before it finishes the transcript.',
+      description: statusMessage || 'Hush is closing the local audio pipeline before it finishes the transcript.',
       nativeProgress,
       steps: ['complete', 'pending', 'pending'],
     };
@@ -118,7 +118,7 @@ export function getPostRecordingPresentation(
     return {
       eyebrow: 'Processing locally',
       title: 'Finishing the transcript',
-      description: statusMessage || 'Meetily is draining the remaining local transcription work.',
+      description: statusMessage || 'Hush is draining the remaining local transcription work.',
       nativeProgress,
       steps: ['complete', 'active', 'pending'],
     };
@@ -128,7 +128,7 @@ export function getPostRecordingPresentation(
     return {
       eyebrow: 'Local save',
       title: 'Saving the meeting',
-      description: statusMessage || 'Meetily is writing the completed meeting and transcript to the local database.',
+      description: statusMessage || 'Hush is writing the completed meeting and transcript to the local database.',
       nativeProgress: null,
       steps: ['complete', 'complete', 'active'],
     };
@@ -147,7 +147,7 @@ export function getPostRecordingPresentation(
   return {
     eyebrow: 'Save interrupted',
     title: 'Meeting not saved yet',
-    description: statusMessage || 'Meetily could not finish the local meeting save.',
+    description: statusMessage || 'Hush could not finish the local meeting save.',
     nativeProgress: null,
     steps: ['complete', 'error', 'error'],
   };

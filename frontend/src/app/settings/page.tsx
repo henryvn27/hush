@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/app-shell/PageHeader';
 import { AppState } from '@/components/app-shell/AppState';
 import { MeetilyGlyph, type MeetilyGlyphName } from '@/components/app-shell/MeetilyGlyph';
 import { nativeQaSettingsTab } from '@/lib/native-qa-mode';
+import { FlowSettings } from '@/components/hush/FlowSettings';
 
 // Tabs configuration (constant)
 const TABS = [
@@ -112,6 +113,7 @@ export default function SettingsPage() {
 
             <TabsContent value="general">
               <h2 className="sr-only">General settings</h2>
+              <FlowSettings />
               <AppearanceSettings />
               <PreferenceSettings />
             </TabsContent>

@@ -14,7 +14,7 @@ test('menu bar visibility is persisted, native, and accessible', async () => {
   assert.match(preferences, /get_menu_bar_enabled/);
   assert.match(preferences, /set_menu_bar_enabled/);
   assert.match(preferences, /Show in menu bar/);
-  assert.match(preferences, /aria-label="Show Meetily in menu bar"/);
+  assert.match(preferences, /aria-label="Show Hush in menu bar"/);
   assert.match(preferences, /role="alert"/);
 
   assert.match(tray, /APP_PREFERENCES_STORE: &str = "app-preferences\.json"/);

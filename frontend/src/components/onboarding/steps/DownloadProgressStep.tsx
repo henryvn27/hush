@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { ArrowDownTrayIcon, ArrowPathIcon, CheckIcon, CpuChipIcon, LanguageIcon } from '@heroicons/react/24/outline';
@@ -56,7 +56,6 @@ export function DownloadProgressStep() {
 
   const [isCompleting, setIsCompleting] = useState(false);
   const parakeetDownloadStartedRef = useRef(false);
-  const summaryDownloadStartedRef = useRef(false);
   const retryingRef = useRef(false);
   const retryingSummaryRef = useRef(false);
 
@@ -301,36 +300,6 @@ export function DownloadProgressStep() {
     }));
   }, [selectedSummaryModel, recommendedSummaryModel, summaryModelDownloaded]);
 
-  const startSummaryDownload = useCallback(async () => {
-    if (!summaryModelDownloaded && selectedSummaryModel) {
-      try {
-        setSummaryState((prev) => ({
-          ...prev,
-          status: 'downloading',
-          totalMb: getSummaryModelSizeMb(selectedSummaryModel),
-        }));
-        await startBackgroundDownloads({
-          includeParakeet: false,
-          includeSummary: true,
-          summaryModel: selectedSummaryModel,
-        });
-      } catch (error) {
-        console.error('Failed to start summary model download:', error);
-        setSummaryState((prev) => ({ ...prev, status: 'error', error: String(error) }));
-      }
-    }
-  }, [selectedSummaryModel, startBackgroundDownloads, summaryModelDownloaded]);
-
-  // Start the selected summary model only after the backend recommendation is known.
-  useEffect(() => {
-    if (isNativeQaMode) return;
-    if (summaryDownloadStartedRef.current) return;
-    if (!selectedSummaryModel) return;
-    summaryDownloadStartedRef.current = true;
-
-    void startSummaryDownload();
-  }, [selectedSummaryModel, startSummaryDownload]);
-
   const handleContinue = async () => {
     // Verify actual model availability (catches state drift)
     try {
@@ -356,8 +325,7 @@ export function DownloadProgressStep() {
     }
 
     // Check if downloads are complete for toast notification
-    const downloadsComplete = parakeetState.status === 'completed' &&
-      summaryState.status === 'completed';
+    const downloadsComplete = parakeetState.status === 'completed';
 
     // Show toast if downloads still in progress
     if (!downloadsComplete) {
@@ -474,7 +442,7 @@ export function DownloadProgressStep() {
   return (
     <OnboardingContainer
       title="Getting things ready"
-      description="You can start using Meetily after downloading the Transcription Engine."
+      description="You can start using Hush after downloading the Transcription Engine."
       step={3}
       totalSteps={isMac ? 4 : 3}
     >
@@ -510,10 +478,10 @@ export function DownloadProgressStep() {
               <div className="flex items-start gap-3">
                 <ArrowDownTrayIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="text-[12px] font-medium">You can continue while this finishes</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Download will continue in the background.
-                  </p>
+                    <p className="text-[12px] font-medium">Local summaries are optional</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    Start dictating now. Add a local summary model later from Settings when you want it.
+                    </p>
                 </div>
               </div>
             </motion.div>

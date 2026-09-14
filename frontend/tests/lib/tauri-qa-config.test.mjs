@@ -54,18 +54,22 @@ test('QA launcher isolates the native dev instance without changing the release 
       'wdio-webdriver:default',
     ],
   });
-  assert.match(layoutSource, /NEXT_PUBLIC_MEETILY_WDIO === 'true' \? 'Meetily Improved QA WebDriver' : 'Meetily Improved'/);
+  assert.match(layoutSource, /NEXT_PUBLIC_MEETILY_WDIO === 'true' \? 'Hush QA WebDriver' : 'Hush'/);
   for (const config of [qa, routesQa, minimumQa, onboardingQa, wdioQa]) {
     assert.equal(config.bundle.createUpdaterArtifacts, false);
   }
   assert.equal(release.bundle.createUpdaterArtifacts, true);
   assert.equal(release.bundle.macOS.minimumSystemVersion, '14.2');
-  for (const config of [qa, routesQa, onboardingQa, release]) {
+  for (const config of [qa, routesQa, onboardingQa]) {
     assert.equal(config.app.windows[0].width, 1280);
     assert.equal(config.app.windows[0].height, 820);
     assert.equal(config.app.windows[0].minWidth, 1100);
     assert.equal(config.app.windows[0].minHeight, 720);
   }
+  assert.equal(release.app.windows[0].width, 1280);
+  assert.equal(release.app.windows[0].height, 820);
+  assert.equal(release.app.windows[0].minWidth, 720);
+  assert.equal(release.app.windows[0].minHeight, 620);
   assert.equal(minimumQa.app.windows[0].width, 1100);
   assert.equal(minimumQa.app.windows[0].height, 720);
   assert.equal(minimumQa.app.windows[0].minWidth, 1100);

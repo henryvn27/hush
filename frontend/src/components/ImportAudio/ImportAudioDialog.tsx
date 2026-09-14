@@ -234,7 +234,7 @@ export function ImportAudioDialog({
                   {isProcessing ? 'Creating your meeting' : error && !isProcessing ? 'Import needs attention' : status === 'complete' ? 'Meeting imported' : 'Import a recording'}
                 </DialogTitle>
                 <DialogDescription className="mt-1.5 leading-5">
-                  {isProcessing ? progressPresentation?.message || 'Waiting for the first local processing update…' : error && !isProcessing ? 'The original file was not changed. Review the local error below.' : 'Choose one recording. Meetily validates, transcribes, and saves it on this device.'}
+                  {isProcessing ? progressPresentation?.message || 'Waiting for the first local processing update…' : error && !isProcessing ? 'The original file was not changed. Review the local error below.' : 'Choose one recording. Hush validates, transcribes, and saves it on this device.'}
                 </DialogDescription>
               </div>
             </div>
@@ -291,7 +291,7 @@ export function ImportAudioDialog({
               <div className="rounded-md border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
                 <span className="mx-auto grid size-12 place-items-center rounded-md bg-card"><ArrowUpTrayIcon className="size-5" aria-hidden="true" /></span>
                 <h2 className="mt-4 font-semibold">Choose a recording</h2>
-                <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Drag one file anywhere into Meetily, or open the native file picker.</p>
+                <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Drag one file anywhere into Hush, or open the native file picker.</p>
                 <Button onClick={handleSelectFile} disabled={status === 'validating'} className="mt-4">
                   {status === 'validating' ? <><ArrowPathIcon className="mr-2 size-4 animate-spin" aria-hidden="true" />Validating locally…</> : <><FolderOpenIcon className="mr-2 size-4" aria-hidden="true" />Choose audio file</>}
                 </Button>
@@ -311,7 +311,7 @@ export function ImportAudioDialog({
               ) : (
                 <div className="flex items-center gap-3 text-sm text-muted-foreground"><ArrowPathIcon className="size-4 animate-spin" aria-hidden="true" />Waiting for the native importer…</div>
               )}
-              <div className="flex items-start gap-3 border-t border-border/70 pt-4 text-sm leading-6 text-muted-foreground"><ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><p>Keep Meetily open while the local transcript and meeting record are created.</p></div>
+              <div className="flex items-start gap-3 border-t border-border/70 pt-4 text-sm leading-6 text-muted-foreground"><ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><p>Keep Hush open while the local transcript and meeting record are created.</p></div>
             </div>
           )}
 

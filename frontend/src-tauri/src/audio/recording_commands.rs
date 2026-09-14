@@ -943,6 +943,43 @@ pub async fn stop_recording<R: Runtime>(
     Ok(())
 }
 
+/// Cancel recording without waiting for transcription or saving the local flow.
+#[tauri::command]
+pub async fn cancel_recording<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
+    if !IS_RECORDING.swap(false, Ordering::SeqCst) {
+        return Ok(());
+    }
+
+    let mut manager = RECORDING_MANAGER.lock().await.take();
+    let meeting_folder = manager.as_ref().and_then(|value| value.get_meeting_folder());
+
+    if let Some(value) = manager.as_mut() {
+        value.stop_streams_only().await.map_err(|error| error.to_string())?;
+    }
+
+    if let Some(task) = TRANSCRIPTION_TASK.lock().unwrap().take() {
+        task.abort();
+    }
+
+    {
+        use tauri::Listener;
+        if let Some(listener_id) = TRANSCRIPT_LISTENER_ID.lock().unwrap().take() {
+            app.unlisten(listener_id);
+        }
+    }
+
+    drop(manager);
+    if let Some(folder) = meeting_folder {
+        if let Err(error) = std::fs::remove_dir_all(&folder) {
+            warn!("Could not remove cancelled recording folder {:?}: {}", folder, error);
+        }
+    }
+
+    crate::tray::update_tray_menu(&app);
+    app.emit("recording-cancelled", serde_json::json!({ "message": "Recording cancelled" }))
+        .map_err(|error| error.to_string())
+}
+
 /// Check if recording is active
 pub async fn is_recording() -> bool {
     IS_RECORDING.load(Ordering::SeqCst)

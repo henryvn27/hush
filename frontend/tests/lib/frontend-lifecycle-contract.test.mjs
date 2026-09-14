@@ -34,7 +34,7 @@ test('public support links and archived runtime boundaries are explicit', async 
     readFile(new URL('src-tauri/src/audio_v2/README.md', root), 'utf8'),
   ]);
 
-  assert.match(bluetoothWarning, /henryvn27\/meetily_improved/);
+  assert.match(bluetoothWarning, /henryvn27\/hush/);
   assert.doesNotMatch(bluetoothWarning, /your-org/);
   assert.doesNotMatch(tauriLib, /(?:pub\s+)?mod\s+audio_v2\s*;/);
   assert.match(archiveReadme, /deliberately not registered/);

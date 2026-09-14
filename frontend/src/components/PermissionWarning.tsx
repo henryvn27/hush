@@ -44,7 +44,7 @@ export function PermissionWarning({
       className="mb-4 max-w-2xl"
       title={!hasMicrophone ? 'Microphone access is required' : 'System audio is unavailable'}
       description={!hasMicrophone
-        ? 'Connect a microphone and allow Meetily in System Settings before starting a recording.'
+        ? 'Connect a microphone and allow Hush in System Settings before starting a recording.'
         : 'Microphone recording can continue, but computer audio will not be captured until system audio access is configured.'}
       action={
         <div className="flex flex-wrap gap-2">

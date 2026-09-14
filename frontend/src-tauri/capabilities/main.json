@@ -6,6 +6,7 @@
   "permissions": [
     "main-window-commands",
     "core:app:allow-version",
+    "core:event:allow-emit",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
     "core:path:allow-resolve-directory",
@@ -20,6 +21,9 @@
     "updater:allow-install",
     "updater:allow-download-and-install",
     "process:allow-restart",
-    "os:allow-platform"
+    "os:allow-platform",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister"
   ]
 }

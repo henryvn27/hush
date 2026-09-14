@@ -10,5 +10,5 @@ test('analytics privacy copy preserves the explicit remote-provider boundary', a
   assert.match(analyticsConsent, /Meetings, transcripts, recordings, and local models stay on this device/);
   assert.match(analyticsConsent, /Remote summary providers only receive data when you explicitly configure and use one/);
   assert.doesNotMatch(analyticsConsent, /remain completely private and local/);
-  assert.match(analyticsConsent, /henryvn27\/meetily_improved#privacy-and-data-boundary/);
+  assert.match(analyticsConsent, /henryvn27\/hush#privacy-and-data-boundary/);
 });

@@ -110,7 +110,7 @@ export function PreRecordingWorkspace({
       <PageHeader
         eyebrow="New local meeting"
         title="Ready when you are"
-        description="Confirm local capture and transcription, then start. Meetily creates the meeting title when recording begins."
+        description="Confirm local capture and transcription, then start. Hush creates the meeting title when recording begins."
         actions={
           <Button variant="outline" onClick={() => router.push('/settings')}>
             <Cog6ToothIcon aria-hidden="true" />
@@ -131,7 +131,7 @@ export function PreRecordingWorkspace({
                   <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Capture locally</p>
                   <h2 className="mt-1.5 max-w-xl text-xl font-semibold tracking-[-0.02em]">Record without a meeting bot</h2>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                    Audio, transcript checkpoints, and the saved meeting remain in Meetily&apos;s existing local workflow.
+                    Audio, transcript checkpoints, and the saved meeting remain in Hush&apos;s local workflow.
                   </p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export function PreRecordingWorkspace({
           kind="error"
           className="mt-4"
           title="Recording could not start"
-          description={statusMessage || 'Meetily could not start the native recording session.'}
+          description={statusMessage || 'Hush could not start the native recording session.'}
           action={
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => void readiness.refresh()}>Check setup again</Button>

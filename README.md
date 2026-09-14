@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="frontend/src-tauri/icons/icon.png" width="112" alt="Meetily Improved app icon" />
-  <h1>Meetily Improved</h1>
-  <p><strong>A calm, local-first meeting workspace for your Mac.</strong></p>
-  <p>Record, transcribe, summarize, and revisit meetings without a bot in the call or an account in the cloud.</p>
+  <img src="frontend/src-tauri/icons/icon.png" width="112" alt="Hush app icon" />
+  <h1>Hush</h1>
+  <p><strong>A quiet, local-first voice desk for your Mac.</strong></p>
+  <p>Dictate, capture meetings, and revisit what matters without a bot in the call or an account in the cloud.</p>
 
   <p>
     <a href="#build-from-source"><strong>Build for macOS</strong></a>
     ·
-    <a href="https://github.com/henryvn27/meetily_improved/releases">Releases</a>
+    <a href="https://github.com/henryvn27/hush/releases">Releases</a>
     ·
     <a href="#privacy-boundary">Privacy</a>
     ·
@@ -22,13 +22,13 @@
   </p>
 </div>
 
-![Meetily Improved desktop workspace](docs/meetily-improved-icon-native-window.png)
+![Hush desktop workspace](docs/meetily-improved-icon-native-window.png)
 
-> **Release status:** Meetily Improved is preparing its first public release. The repository is usable from source today; downloads will appear on [GitHub Releases](https://github.com/henryvn27/meetily_improved/releases) only after the documented [release security and provenance gates](docs/RELEASE_SECURITY.md) pass.
+> **Release status:** Hush is being prepared as a separate local-first product based on Meetily. The repository is usable from source today; downloads will appear on [GitHub Releases](https://github.com/henryvn27/hush/releases) only after the documented [release security and provenance gates](docs/RELEASE_SECURITY.md) pass.
 
-## Why Meetily Improved
+## Why Hush
 
-| | Meetily Improved |
+| | Hush |
 | --- | --- |
 | **No meeting bot** | Captures microphone and system audio directly on your desktop. |
 | **Local by default** | Recordings, transcripts, summaries, recovery data, and the meeting library stay on your device. |
@@ -36,14 +36,14 @@
 | **Choice of models** | Use local Whisper, Parakeet, built-in models, or Ollama; remote summary providers are explicit opt-in choices. |
 | **No invented results** | Empty, loading, recovery, model, and error states reflect real application data. |
 
-Meetily Improved is an independent MIT-licensed fork of [Zackriya Solutions' Meetily](https://github.com/Zackriya-Solutions/meetily). It preserves Meetily's recording, transcription, storage, summaries, imports, and recovery foundation while rebuilding the product as a cohesive desktop workspace.
+Hush is an independent product based on the MIT-licensed [Zackriya Solutions' Meetily](https://github.com/Zackriya-Solutions/meetily). It preserves the recording, transcription, storage, summaries, imports, and recovery foundation while rebuilding the experience around local voice capture.
 
 ## Highlights
 
 - **Capture without inviting software into the call.** Check devices and model readiness, then record microphone and system audio locally.
 - **Return to the conversation.** Search saved meetings, read transcripts and summaries, play the recording, edit notes, and export from one workspace.
 - **Ask your meetings locally.** Ask Meetings uses bounded excerpts from saved transcripts and a loopback-only Ollama connection; it does not silently fall back to a cloud model.
-- **Recover interrupted work.** Meetily keeps local checkpoints and exposes explicit recovery states instead of hiding partial data.
+- **Recover interrupted work.** Hush keeps local checkpoints and exposes explicit recovery states instead of hiding partial data.
 - **Use the appearance that fits your Mac.** System, Light, and Dark preferences live in Settings and persist locally.
 
 ## Project status
@@ -101,8 +101,8 @@ There is no cloud sync, account system, calendar integration, or persistent embe
 ### Install and run the frontend
 
 ```bash
-git clone https://github.com/henryvn27/meetily_improved.git
-cd meetily_improved/frontend
+git clone https://github.com/henryvn27/hush.git
+cd hush/frontend
 pnpm install --frozen-lockfile
 pnpm run dev
 ```
@@ -112,7 +112,7 @@ pnpm run dev
 Meetily uses a Rust helper sidecar. On Apple Silicon macOS, build the Metal-enabled helper and stage it for Tauri before launching or packaging:
 
 ```bash
-cd meetily_improved
+cd hush
 cargo build --release -p llama-helper --features metal
 mkdir -p frontend/src-tauri/binaries
 cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin

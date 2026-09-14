@@ -1,7 +1,7 @@
 import { $, browser } from '@wdio/globals';
 
 export const routes = [
-  { nav: 'Home', heading: 'Work from what was said.', path: '/' },
+  { nav: 'Home', heading: 'Activity', path: '/' },
   { nav: 'New meeting', heading: 'New meeting', path: '/new-meeting' },
   { nav: 'Saved meetings', heading: 'Saved meetings', path: '/meetings' },
   { nav: 'Ask meetings', heading: 'Ask meetings', path: '/chat' },

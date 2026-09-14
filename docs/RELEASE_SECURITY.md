@@ -52,9 +52,9 @@ Download the assets into an empty directory, then run:
 sha256sum --check SHA256SUMS
 
 while read -r _ file; do
-  gh attestation verify "$file" --repo henryvn27/meetily_improved
+  gh attestation verify "$file" --repo henryvn27/hush
   gh attestation verify "$file" \
-    --repo henryvn27/meetily_improved \
+    --repo henryvn27/hush \
     --predicate-type https://spdx.dev/Document/v2.3
 done < SHA256SUMS
 ```

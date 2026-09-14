@@ -1,6 +1,6 @@
 # Building Meetily Improved from Source
 
-This guide provides detailed instructions for building Meetily Improved from source on different operating systems. Clone the public fork from `https://github.com/henryvn27/meetily_improved.git`; the supported application is the Tauri desktop app under `frontend/`.
+This guide provides detailed instructions for building Meetily Improved from source on different operating systems. Clone the public fork from `https://github.com/henryvn27/hush.git`; the supported application is the Tauri desktop app under `frontend/`.
 
 <details>
 <summary>Linux</summary>

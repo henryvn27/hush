@@ -18,9 +18,10 @@ test('onboarding uses the native setup assistant visual language', async () => {
   const combined = files.join('\n');
   const [container, , progress, , , downloads] = files;
 
-  assert.match(container, /grid-cols-\[264px_minmax\(0,1fr\)\]/);
-  assert.match(container, /max-\[1160px\]:grid-cols-\[232px_minmax\(0,1fr\)\]/);
-  assert.match(container, /Private by default/);
+  assert.match(container, /hush-onboarding-topbar/);
+  assert.match(container, /hush-onboarding-progress/);
+  assert.match(container, /hush-onboarding-main/);
+  assert.match(container, /PRIVATE BY DEFAULT/);
   assert.match(container, /logo-collapsed\.png/);
   assert.match(progress, /aria-current=\{isActive \? 'step'/);
   assert.match(downloads, /role="progressbar"/);
@@ -86,7 +87,7 @@ test('permissions completion exits onboarding without an unbounded reload wait',
   assert.doesNotMatch(completionHandler, /window\.location\.reload\(\)/);
   assert.match(context, /Model readiness check deferred/);
   assert.match(context, /Local model check timed out\./);
-  assert.match(context, /Meetily could not save setup\. Please try again\./);
+  assert.match(context, /Hush could not save setup\. Please try again\./);
   assert.ok(
     context.indexOf("invoke('complete_onboarding'") < context.indexOf("invoke<boolean>('builtin_ai_is_model_ready'", context.indexOf('const completeOnboarding')),
     'onboarding is saved before the non-blocking model readiness probe',

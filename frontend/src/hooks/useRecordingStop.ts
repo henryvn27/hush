@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { listen } from '@tauri-apps/api/event';
+import { emit, listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 import { useTranscripts } from '@/contexts/TranscriptContext';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
@@ -12,11 +13,15 @@ import {
   applyPinnedSummaryLanguageToMeeting,
   detectAndCacheSummaryLanguage,
 } from '@/lib/summary-language-preferences';
+import { saveLastTranscript } from '@/lib/last-transcript';
+import { insertIntoFocusedApp } from '@/lib/focused-app-insertion';
+import { applyPhraseRules, readPhraseRules } from '@/lib/hush-personalization';
 
 type SummaryStatus = 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'completed' | 'error';
 
 interface UseRecordingStopReturn {
   handleRecordingStop: (callApi: boolean) => Promise<void>;
+  handleRecordingCancel: () => Promise<void>;
   isStopping: boolean;
   isProcessingTranscript: boolean;
   isSavingTranscript: boolean;
@@ -226,7 +231,11 @@ export function useRecordingStop(
         setStatus(RecordingStatus.SAVING, 'Saving meeting to database...');
 
         // Get fresh transcript state (ALL transcripts including late ones)
-        const freshTranscripts = [...transcriptsRef.current];
+        const phraseRules = readPhraseRules();
+        const freshTranscripts = transcriptsRef.current.map((transcript) => ({
+          ...transcript,
+          text: applyPhraseRules(transcript.text, phraseRules),
+        }));
 
         // Get folder_path and meeting_name from recording-stopped event
         const folderPath = sessionStorage.getItem('last_recording_folder_path');
@@ -251,6 +260,37 @@ export function useRecordingStop(
           if (!meetingId) {
             console.error('No meeting_id in response:', responseData);
             throw new Error('No meeting ID received from save operation');
+          }
+
+          const transcriptText = freshTranscripts
+            .map((transcript) => transcript.text.trim())
+            .filter(Boolean)
+            .join(' ');
+          saveLastTranscript(transcriptText);
+          const shouldInsertAtCursor = typeof window !== 'undefined'
+            && window.localStorage.getItem('hush-insert-at-cursor') === 'true';
+
+          if (shouldInsertAtCursor && transcriptText) {
+            try {
+              const insertionResult = await insertIntoFocusedApp(transcriptText);
+              if (insertionResult.mode === 'inserted') {
+                toast.success('Dictation inserted', {
+                  description: 'Your local transcript was pasted into the focused app.',
+                  duration: 3500,
+                });
+              } else {
+                toast.warning('Transcript copied instead', {
+                  description: 'Allow Hush in macOS Accessibility settings to paste automatically.',
+                  duration: 6000,
+                });
+              }
+            } catch (insertError) {
+              console.warn('Focused-app insertion failed; copying transcript instead:', insertError);
+              toast.error('Could not insert or copy transcript', {
+                description: insertError instanceof Error ? insertError.message : 'Check Hush permissions and try again.',
+                duration: 6000,
+              });
+            }
           }
 
           let shouldDetectSummaryLanguage = false;
@@ -309,6 +349,7 @@ export function useRecordingStop(
 
           // Mark as completed
           setStatus(RecordingStatus.COMPLETED);
+          void emit('hush-recording-lifecycle', { status: RecordingStatus.COMPLETED });
 
           // Show success toast with navigation option
           toast.success('Recording saved successfully!', {
@@ -331,6 +372,7 @@ export function useRecordingStop(
 
             // Reset to IDLE after navigation
             setStatus(RecordingStatus.IDLE);
+            void emit('hush-recording-lifecycle', { status: RecordingStatus.IDLE });
           }, 2000);
           // Track meeting completion analytics
           try {
@@ -423,6 +465,18 @@ export function useRecordingStop(
     router,
   ]);
 
+  const handleRecordingCancel = useCallback(async () => {
+    stopInProgressRef.current = false;
+    setStatus(RecordingStatus.IDLE);
+    setIsRecording(false);
+    setIsMeetingActive(false);
+    setIsRecordingDisabled(false);
+    clearTranscripts();
+    sessionStorage.removeItem('last_recording_folder_path');
+    sessionStorage.removeItem('last_recording_meeting_name');
+    void emit('hush-recording-lifecycle', { status: RecordingStatus.IDLE });
+  }, [clearTranscripts, setIsMeetingActive, setIsRecording, setIsRecordingDisabled, setStatus]);
+
   // Expose handleRecordingStop function to window for Rust callbacks
   const handleRecordingStopRef = useRef(handleRecordingStop);
   useEffect(() => {
@@ -445,6 +499,7 @@ export function useRecordingStop(
 
   return {
     handleRecordingStop,
+    handleRecordingCancel,
     isStopping,
     isProcessingTranscript,
     isSavingTranscript,

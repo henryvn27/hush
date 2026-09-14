@@ -59,17 +59,17 @@ export function About() {
                 <div className="mb-3">
                     <Image
                         src="icon_128x128.png"
-                        alt="Meetily Improved logo"
+                        alt="Hush logo"
                         width={64}
                         height={64}
                         className="mx-auto rounded-[14px]"
                     />
                 </div>
-                <p className="app-eyebrow">Meetily Improved / local meeting desk</p>
-                <h1 className="app-display mt-2 text-2xl">Meetily Improved</h1>
+                <p className="app-eyebrow">Hush / local voice desk</p>
+                <h1 className="app-display mt-2 text-2xl">Hush</h1>
                 <span className="mt-1 block text-xs text-muted-foreground">v{currentVersion}</span>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                    A local-first desktop fork for capturing, transcribing, and revisiting meetings without fabricated activity or forced cloud accounts.
+                    A local-first desktop product for dictation, capture, and meeting memory without forced cloud accounts.
                 </p>
                 <div className="mt-3">
                     <Button
@@ -116,14 +116,14 @@ export function About() {
                     </div>
                     <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Open source</h3>
-                        <p className="text-xs leading-relaxed text-muted-foreground">Meetily Improved is public work built with clear attribution to the upstream MIT project.</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground">Hush is public work built with clear attribution to the upstream MIT project.</p>
                     </div>
                 </div>
             </div>
 
             <div className="rounded-control border border-accent/30 bg-accent-soft p-3">
                 <p className="text-sm leading-5 text-foreground">
-                    <span className="font-semibold">Upstream attribution.</span> Meetily Improved is an independent fork of Meetily by Zackriya Solutions. The original application and MIT license remain credited in this project.
+                    <span className="font-semibold">Upstream attribution.</span> Hush is an independent product based on Meetily by Zackriya Solutions. The original application and MIT license remain credited in this project.
                 </p>
             </div>
 

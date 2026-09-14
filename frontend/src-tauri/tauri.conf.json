@@ -1,6 +1,6 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "Meetily Improved",
+    "productName": "Hush",
     "version": "0.5.0",
     "identifier": "com.meetily.ai",
     "build": {
@@ -12,15 +12,32 @@
     "app": {
         "windows": [
             {
-                "title": "Meetily Improved",
+                "title": "Hush",
                 "width": 1280,
                 "height": 820,
-                "minWidth": 1100,
-                "minHeight": 720,
+                "minWidth": 720,
+                "minHeight": 620,
                 "resizable": true,
                 "fullscreen": false,
                 "theme": "Light",
                 "decorations": true
+            },
+            {
+                "label": "flow-bar",
+                "title": "Hush Flow Bar",
+                "url": "flow-bar.html",
+                "width": 176,
+                "height": 48,
+                "minWidth": 132,
+                "minHeight": 40,
+                "resizable": false,
+                "fullscreen": false,
+                "transparent": true,
+                "decorations": false,
+                "alwaysOnTop": true,
+                "skipTaskbar": true,
+                "focus": false,
+                "visible": false
             }
         ],
         "security": {
@@ -50,7 +67,7 @@
                 "style-src": "'self' 'unsafe-inline'",
                 "media-src": "'self' blob: data:"
             },
-            "capabilities": ["main"]
+            "capabilities": ["main", "flow-bar"]
         }
     },
     "bundle": {
@@ -92,7 +109,7 @@
         "updater": {
             "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDQTYzMUQ3ODc5N0M4MkEKUldRcXlKZUgxekdtN09DRkVWSHNpZlJseEVOUmpNd1dDSTNaLzZ3MXJGTnY3WW1pdnlOYjBpbkIK",
             "endpoints": [
-                "https://github.com/henryvn27/meetily_improved/releases/latest/download/latest.json"
+                "https://github.com/henryvn27/hush/releases/latest/download/latest.json"
             ]
         }
     }

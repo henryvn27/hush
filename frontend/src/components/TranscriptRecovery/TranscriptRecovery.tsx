@@ -50,7 +50,7 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
       setPreviewTranscripts(transcripts.slice(0, 10));
     } catch (error) {
       setPreviewTranscripts([]);
-      setActionError(errorMessage(error, 'Meetily could not load this local transcript preview.'));
+      setActionError(errorMessage(error, 'Hush could not load this local transcript preview.'));
     } finally {
       setIsLoadingPreview(false);
     }
@@ -82,7 +82,7 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
       if (!result.success || !result.meetingId) throw new Error('Recovery did not return a saved meeting ID. The local recovery copy was kept.');
       onClose();
     } catch (error) {
-      setActionError(errorMessage(error, 'Meetily could not recover this meeting. The local recovery copy was kept.'));
+      setActionError(errorMessage(error, 'Hush could not recover this meeting. The local recovery copy was kept.'));
     } finally {
       setIsRecovering(false);
     }
@@ -103,7 +103,7 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
       setPreviewTranscripts([]);
       setConfirmDelete(false);
     } catch (error) {
-      setActionError(errorMessage(error, 'Meetily could not discard this recovery copy. Nothing was removed.'));
+      setActionError(errorMessage(error, 'Hush could not discard this recovery copy. Nothing was removed.'));
     } finally {
       setIsDeleting(false);
     }
@@ -164,7 +164,7 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
                 </div>
 
                 {actionError && <div role="alert" className="mt-3 flex items-start gap-3 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3 text-sm"><ExclamationTriangleIcon className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="font-semibold">Recovery did not complete</p><p className="mt-1 leading-5 text-muted-foreground">{actionError}</p></div></div>}
-                {confirmDelete && <div role="alert" className="mt-3 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3 text-sm"><p className="font-semibold">Discard this recovery copy?</p><p className="mt-1 leading-5 text-muted-foreground">This removes the selected IndexedDB transcript recovery copy. Meetily does not delete the recording folder or claim other files were removed.</p></div>}
+                {confirmDelete && <div role="alert" className="mt-3 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3 text-sm"><p className="font-semibold">Discard this recovery copy?</p><p className="mt-1 leading-5 text-muted-foreground">This removes the selected IndexedDB transcript recovery copy. Hush does not delete the recording folder or claim other files were removed.</p></div>}
               </div>
             ) : <div className="grid h-full min-h-56 place-items-center text-sm text-muted-foreground">Select a local recovery copy to review it.</div>}
           </div>

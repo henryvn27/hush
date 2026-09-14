@@ -39,7 +39,7 @@ export function deriveRecordingReadiness(input: RecordingReadinessInput): Record
       ],
       canStart: false,
       blockReason: 'Checking recording setup',
-      blockDetail: 'Meetily is reading local devices and model availability.',
+      blockDetail: 'Hush is reading local devices and model availability.',
     };
   }
 
@@ -55,7 +55,7 @@ export function deriveRecordingReadiness(input: RecordingReadinessInput): Record
         id: 'microphone',
         label: 'Microphone',
         state: 'error',
-        detail: `Meetily could not read audio devices: ${input.audioError}`,
+        detail: `Hush could not read audio devices: ${input.audioError}`,
       }
     : microphoneMatches
       ? {
@@ -129,7 +129,7 @@ export function deriveRecordingReadiness(input: RecordingReadinessInput): Record
           id: 'transcription',
           label: 'Local transcription',
           state: 'error',
-          detail: input.modelError || 'Meetily could not verify the local transcription model.',
+      detail: input.modelError || 'Hush could not verify the local transcription model.',
         };
       case 'checking':
       default:

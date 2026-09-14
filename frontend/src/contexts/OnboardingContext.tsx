@@ -518,7 +518,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         invoke('complete_onboarding', {
           model: modelToSave,
         }),
-        'Meetily could not save setup. Please try again.',
+        'Hush could not save setup. Please try again.',
         8_000,
       );
       setCompleted(true);

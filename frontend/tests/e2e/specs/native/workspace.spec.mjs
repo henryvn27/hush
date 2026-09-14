@@ -45,13 +45,13 @@ async function closeDialog() {
 
 async function resetWorkspace() {
   await browser.execute(() => window.location.reload());
-  await expectPageHeading('Work from what was said.');
+  await expectPageHeading('Activity');
   await waitForThemeMotionToSettle();
 }
 
 async function captureWorkspaceDialogs(appearance, width, height) {
   await browser.execute(() => window.location.assign('/'));
-  await expectPageHeading('Work from what was said.');
+  await expectPageHeading('Activity');
 
   await $('button[aria-label="Import audio"]').click();
   await expectPageHeading('Import a recording', 2);
@@ -61,7 +61,7 @@ async function captureWorkspaceDialogs(appearance, width, height) {
   await resetWorkspace();
 
   await $('button[aria-label="About"]').click();
-  await expectPageHeading('About Meetily Improved', 2);
+  await expectPageHeading('About Hush', 2);
   await expectWcag22Aa(browser, '[role="dialog"]');
   await browser.saveScreenshot(resolve(artifactDir, `about-${slug(appearance)}-${width}x${height}.png`));
   await closeDialog();
@@ -109,7 +109,7 @@ describe('Meetily native macOS workspace', () => {
 
   beforeEach(async () => {
     await browser.execute(() => window.location.assign('/'));
-    await expectPageHeading('Work from what was said.');
+    await expectPageHeading('Activity');
     await browser.waitUntil(
       async () => {
         const theme = await browser.execute(() => document.documentElement.dataset.theme);
@@ -128,7 +128,7 @@ describe('Meetily native macOS workspace', () => {
     const resolvedTheme = await browser.execute(() => document.documentElement.dataset.theme);
     expect(location).toContain('tauri');
     expect(['light', 'dark']).toContain(resolvedTheme);
-    await expectPageHeading('Work from what was said.');
+  await expectPageHeading('Activity');
     await expectWcag22Aa(browser);
 
     for (const route of routes.slice(1)) {

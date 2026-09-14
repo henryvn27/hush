@@ -14,7 +14,7 @@ const MainContent: React.FC<MainContentProps> = ({ children }) => {
     <main
       id="main-content"
       tabIndex={-1}
-      className={`h-dvh min-w-0 overflow-hidden bg-background transition-[margin,width] duration-200 ease-out ${
+      className={`hush-main-content h-dvh min-w-0 overflow-hidden bg-background transition-[margin,width] duration-200 ease-out ${
         isCollapsed
           ? 'ml-[4.5rem] w-[calc(100%-4.5rem)]'
           : 'ml-[15rem] w-[calc(100%-15rem)]'

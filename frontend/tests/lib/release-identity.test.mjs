@@ -27,14 +27,14 @@ assert.match(frontendSources[0], /APP_VERSION = '0\.5\.0'/, 'keeps UI-visible ve
 assert.match(frontendSources[1], /APP_VERSION_LABEL/, 'sidebar renders the shared app version label');
 assert.doesNotMatch(frontendSources.join('\n'), /0\.4\.0/, 'removes stale pre-release version strings from visible UI and analytics examples');
 
-assert.equal(tauriConfig.productName, 'Meetily Improved', 'keeps the macOS-visible product name');
+assert.equal(tauriConfig.productName, 'Hush', 'keeps the macOS-visible product name');
 assert.equal(tauriConfig.identifier, 'com.meetily.ai', 'preserves the stable storage and permission identifier');
 assert.equal(tauriConfig.bundle.macOS.minimumSystemVersion, '14.2', 'keeps the bundle floor aligned with the default Core Audio capture path');
-assert.match(tauriConfigText, /henryvn27\/meetily_improved\/releases\/latest\/download\/latest\.json/, 'uses the fork-owned updater endpoint');
-assert.match(cargoManifest, /repository = "https:\/\/github\.com\/henryvn27\/meetily_improved"/, 'publishes fork-owned Cargo metadata');
+assert.match(tauriConfigText, /henryvn27\/hush\/releases\/latest\/download\/latest\.json/, 'uses the fork-owned updater endpoint');
+assert.match(cargoManifest, /repository = "https:\/\/github\.com\/henryvn27\/hush"/, 'publishes fork-owned Cargo metadata');
 assert.match(releaseWorkflow, /Meetily Improved v/, 'names GitHub releases for the public app');
 assert.match(releaseWorkflow, /asset-prefix: "meetily-improved"/, 'names release assets for the public app');
-assert.match(updateManifest, /henryvn27\/meetily_improved/, 'generates fork-owned update manifest links');
+assert.match(updateManifest, /henryvn27\/hush/, 'generates fork-owned update manifest links');
 assert.doesNotMatch(`${tauriConfigText}\n${cargoManifest}\n${releaseWorkflow}\n${updateManifest}`, /Zackriya-Solutions\/meeting-minutes/, 'removes upstream release endpoints from active distribution metadata');
 
 console.log('release identity source checks passed');

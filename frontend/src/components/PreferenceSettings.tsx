@@ -131,7 +131,7 @@ export function PreferenceSettings() {
     } catch (error) {
       console.error('Failed to update menu bar preference:', error);
       setMenuBarEnabled(previousValue);
-      setMenuBarError('Meetily could not update the menu bar icon. Try again.');
+      setMenuBarError('Hush could not update the menu bar icon. Try again.');
     }
   };
 
@@ -179,11 +179,11 @@ export function PreferenceSettings() {
             <p className="app-eyebrow mb-2">Desktop</p>
             <h3 id="menu-bar-heading" className="text-lg font-semibold tracking-[-0.03em]">Show in menu bar</h3>
             <p id="menu-bar-description" className="mt-1 text-sm text-muted-foreground">
-              Keep Meetily available beside your Mac status icons. Meetily remains in the Dock when this is off.
+              Keep Hush available beside your Mac status icons. Hush remains in the Dock when this is off.
             </p>
           </div>
           <Switch
-            aria-label="Show Meetily in menu bar"
+            aria-label="Show Hush in menu bar"
             aria-describedby="menu-bar-description"
             checked={menuBarEnabled ?? false}
             disabled={menuBarEnabled === null}
@@ -215,7 +215,7 @@ export function PreferenceSettings() {
         <p className="app-eyebrow mb-2">Local storage</p>
         <h3 className="text-lg font-semibold tracking-[-0.03em]">Data locations</h3>
         <p className="mb-6 mt-1 text-sm text-muted-foreground">
-          View and access where Meetily stores your data
+          View and access where Hush stores your data
         </p>
 
         <div className="space-y-4">
