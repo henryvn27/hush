@@ -9,7 +9,8 @@
         {"number":1,"candidate":"Meetings-library metadata N+1 IPC loading","verdict":"PROVEN","reductionPercent":99.01,"commit":"35a08b8"},
         {"number":2,"candidate":"Recovery checkpoint availability fanout","verdict":"PROVEN","reductionPercent":99,"commit":"11a10c5"},
         {"number":3,"candidate":"Model readiness duplicate fetch","verdict":"PROVEN","whisperReductionPercent":50,"parakeetReductionPercent":33.33,"commit":"ba3ef65"},
-        {"number":4,"candidate":"Parallel transcription model picker loading","verdict":"PROVEN","beforeMedianMs":44.306666,"afterMedianMs":22.211125,"reductionPercent":49.87,"verification":["focused benchmark","83 frontend tests","typecheck","production build"]}
+        {"number":4,"candidate":"Parallel transcription model picker loading","verdict":"PROVEN","beforeMedianMs":44.306666,"afterMedianMs":22.211125,"reductionPercent":49.87,"commit":"3e4cfd0"},
+        {"number":5,"candidate":"Parallel meeting-details metadata and transcript loading","verdict":"PROVEN","beforeMedianMs":44.287125,"afterMedianMs":22.22475,"reductionPercent":49.82,"verification":["focused benchmark","84 frontend tests","typecheck","production build"]}
       ],
       "consecutiveNoWinRuns":0
     }

@@ -1,23 +1,23 @@
-# Speedup Proof: Parallel Transcription Model Loading
+# Speedup Proof: Parallel Meeting Details Loading
 
 ## Verdict
 
-PROVEN. The transcription model picker now loads Whisper and Parakeet lists concurrently. Provider failures remain isolated through Promise.allSettled, preserving the previous behavior where one unavailable provider does not hide the other.
+PROVEN. Meeting details now loads metadata and the first transcript page concurrently. Both helpers already catch their own errors, so independent failure handling is preserved.
 
 ## Before and after
 
-Measured across 2 warmups and 7 iterations with equivalent 20ms provider responses:
+Measured across 2 warmups and 7 iterations with equivalent 20ms request latency:
 
-- Before median: 44.31ms
-- After median: 22.21ms
-- Reduction: 49.87%
+- Before median: 44.29ms
+- After median: 22.22ms
+- Reduction: 49.82%
 
-Presentation order remains Whisper first, then Parakeet. Model selection fallback and loading state behavior are unchanged.
+Both initial load and explicit refetch use the parallel path.
 
 ## Verification
 
 - Focused benchmark: PASS
-- Frontend tests: PASS, 83/83
+- Frontend tests: PASS, 84/84
 - Typecheck: PASS
 - Production build: PASS
 - git diff --check: PASS
@@ -25,9 +25,9 @@ Presentation order remains Whisper first, then Parakeet. Model selection fallbac
 
 ## Files
 
-- useTranscriptionModels.ts: /Users/Henrydev/Developer/Hush/frontend/src/hooks/useTranscriptionModels.ts:35
-- model-picker-performance.test.mjs: /Users/Henrydev/Developer/Hush/frontend/tests/lib/model-picker-performance.test.mjs:1
+- usePaginatedTranscripts.ts: /Users/Henrydev/Developer/Hush/frontend/src/hooks/usePaginatedTranscripts.ts:160
+- paginated-transcripts-performance.test.mjs: /Users/Henrydev/Developer/Hush/frontend/tests/lib/paginated-transcripts-performance.test.mjs:1
 
 ## Remaining campaign
 
-This is run 4 of the autonomous campaign. Five consecutive no-win proofs are still required before stopping.
+This is run 5 of the autonomous campaign. Five consecutive no-win proofs are still required before stopping.

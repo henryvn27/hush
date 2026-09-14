@@ -158,8 +158,10 @@ export function usePaginatedTranscripts({
         reset();
         setIsLoading(true);
         try {
-            await loadMetadata();
-            await loadTranscriptsAtOffset(0, false);
+            await Promise.all([
+                loadMetadata(),
+                loadTranscriptsAtOffset(0, false),
+            ]);
         } finally {
             setIsLoading(false);
         }
@@ -184,8 +186,10 @@ export function usePaginatedTranscripts({
         const loadInitial = async () => {
             setIsLoading(true);
             try {
-                await loadMetadata();
-                await loadTranscriptsAtOffset(0, false);
+                await Promise.all([
+                    loadMetadata(),
+                    loadTranscriptsAtOffset(0, false),
+                ]);
             } finally {
                 setIsLoading(false);
             }
