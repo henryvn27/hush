@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { EyeIcon, EyeSlashIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { ModelManager } from './WhisperModelManager';
 import { ParakeetModelManager } from './ParakeetModelManager';
+import { MODEL_DEFAULTS } from '@/constants/modelDefaults';
 
 
 export interface TranscriptModelProps {
@@ -112,6 +113,17 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                 onValueChange={(value) => {
                                     const provider = value as TranscriptModelProps['provider'];
                                     setUiProvider(provider);
+                                    const defaultModel = provider === 'localWhisper' || provider === 'parakeet'
+                                        ? MODEL_DEFAULTS[provider]
+                                        : modelOptions[provider][0] || transcriptModelConfig.model;
+                                    setTranscriptModelConfig({
+                                        ...transcriptModelConfig,
+                                        provider,
+                                        model: defaultModel,
+                                        apiKey: provider === 'localWhisper' || provider === 'parakeet'
+                                            ? null
+                                            : transcriptModelConfig.apiKey,
+                                    });
                                     if (provider !== 'localWhisper' && provider !== 'parakeet') {
                                         fetchApiKey(provider);
                                     }
