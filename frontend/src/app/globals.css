@@ -805,7 +805,7 @@
   }
 
   .hush-flow-bar {
-    @apply fixed bottom-3 left-1/2 z-50 flex min-h-[1.875rem] w-[7.5rem] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center rounded-full border border-black/10 bg-[#18171b] px-0.5 py-0.5 text-white;
+    @apply fixed bottom-3 left-1/2 z-50 flex min-h-[1.875rem] w-[6.75rem] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center rounded-full border border-black/10 bg-[#18171b] px-0.5 py-0.5 text-white;
     box-shadow: 0 6px 18px hsl(264 18% 12% / 0.18), 0 1px 3px hsl(264 18% 12% / 0.14);
     transition: width 180ms ease, box-shadow 180ms ease;
     cursor: grab;
@@ -1603,7 +1603,7 @@
     left: 50%;
     right: auto;
     width: auto;
-    max-width: 7.5rem;
+    max-width: 6.75rem;
     transform: translateX(-50%);
   }
 
