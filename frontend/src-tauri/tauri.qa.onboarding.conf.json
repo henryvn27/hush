@@ -1,5 +1,5 @@
 {
-  "productName": "Meetily Improved QA Onboarding",
+  "productName": "Hush QA Onboarding",
   "identifier": "com.meetily.improved.qa.onboarding",
   "bundle": {
     "createUpdaterArtifacts": false
@@ -7,7 +7,7 @@
   "app": {
     "windows": [
       {
-        "title": "Meetily Improved QA Onboarding",
+        "title": "Hush QA Onboarding",
         "width": 1280,
         "height": 820,
         "minWidth": 1100,

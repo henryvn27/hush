@@ -1,5 +1,5 @@
 {
-  "productName": "Meetily Improved QA WebDriver",
+  "productName": "Hush QA WebDriver",
   "identifier": "com.meetily.improved.qa.wdio",
   "bundle": {
     "createUpdaterArtifacts": false
@@ -8,7 +8,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Meetily Improved QA WebDriver",
+        "title": "Hush QA WebDriver",
         "width": 1280,
         "height": 820,
         "minWidth": 1100,

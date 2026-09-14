@@ -30,19 +30,19 @@ test('QA launcher isolates the native dev instance without changing the release 
   assert.equal(scripts['tauri:dev:qa:onboarding'], 'NEXT_PUBLIC_MEETILY_NATIVE_QA_MODE=onboarding tauri dev --config src-tauri/tauri.qa.onboarding.conf.json -- --features metal');
   assert.equal(scripts['tauri:build:qa:onboarding'], 'NEXT_PUBLIC_MEETILY_NATIVE_QA_MODE=onboarding tauri build --debug --bundles app --config src-tauri/tauri.qa.onboarding.conf.json --features metal');
   assert.equal(qa.identifier, 'com.meetily.improved.qa');
-  assert.equal(qa.productName, 'Meetily Improved QA');
-  assert.equal(qa.app.windows[0].title, 'Meetily Improved QA');
+  assert.equal(qa.productName, 'Hush QA');
+  assert.equal(qa.app.windows[0].title, 'Hush QA');
   assert.equal(routesQa.identifier, 'com.meetily.improved.qa.routes');
-  assert.equal(routesQa.productName, 'Meetily Improved QA Routes');
-  assert.equal(routesQa.app.windows[0].title, 'Meetily Improved QA Routes');
+  assert.equal(routesQa.productName, 'Hush QA Routes');
+  assert.equal(routesQa.app.windows[0].title, 'Hush QA Routes');
   assert.equal(minimumQa.identifier, 'com.meetily.improved.qa.minimum');
-  assert.equal(minimumQa.productName, 'Meetily Improved QA Minimum');
-  assert.equal(minimumQa.app.windows[0].title, 'Meetily Improved QA Minimum');
+  assert.equal(minimumQa.productName, 'Hush QA Minimum');
+  assert.equal(minimumQa.app.windows[0].title, 'Hush QA Minimum');
   assert.equal(onboardingQa.identifier, 'com.meetily.improved.qa.onboarding');
-  assert.equal(onboardingQa.productName, 'Meetily Improved QA Onboarding');
-  assert.equal(onboardingQa.app.windows[0].title, 'Meetily Improved QA Onboarding');
+  assert.equal(onboardingQa.productName, 'Hush QA Onboarding');
+  assert.equal(onboardingQa.app.windows[0].title, 'Hush QA Onboarding');
   assert.equal(wdioQa.identifier, 'com.meetily.improved.qa.wdio');
-  assert.equal(wdioQa.app.windows[0].title, 'Meetily Improved QA WebDriver');
+  assert.equal(wdioQa.app.windows[0].title, 'Hush QA WebDriver');
   assert.equal(wdioQa.app.security.capabilities[0], 'main');
   assert.deepEqual(wdioQa.app.security.capabilities[1], {
     identifier: 'wdio',

@@ -1,5 +1,5 @@
 {
-  "productName": "Meetily Improved QA Minimum",
+  "productName": "Hush QA Minimum",
   "identifier": "com.meetily.improved.qa.minimum",
   "bundle": {
     "createUpdaterArtifacts": false
@@ -7,7 +7,7 @@
   "app": {
     "windows": [
       {
-        "title": "Meetily Improved QA Minimum",
+        "title": "Hush QA Minimum",
         "width": 1100,
         "height": 720,
         "minWidth": 1100,

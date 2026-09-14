@@ -3,12 +3,13 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const root = (file) => fileURLToPath(new URL(file, import.meta.url));
-const [tauriConfigText, cargoManifest, frontendPackage, releaseWorkflow, updateManifest] = await Promise.all([
+const [tauriConfigText, cargoManifest, frontendPackage, releaseWorkflow, updateManifest, recordingPreferences] = await Promise.all([
   readFile(root('../../src-tauri/tauri.conf.json'), 'utf8'),
   readFile(root('../../src-tauri/Cargo.toml'), 'utf8'),
   readFile(root('../../package.json'), 'utf8'),
   readFile(root('../../../.github/workflows/release.yml'), 'utf8'),
   readFile(root('../../../scripts/generate-update-manifest-github.js'), 'utf8'),
+  readFile(root('../../src-tauri/src/audio/recording_preferences.rs'), 'utf8'),
 ]);
 const tauriConfig = JSON.parse(tauriConfigText);
 const frontendSources = await Promise.all([
@@ -32,8 +33,10 @@ assert.equal(tauriConfig.identifier, 'com.meetily.ai', 'preserves the stable sto
 assert.equal(tauriConfig.bundle.macOS.minimumSystemVersion, '14.2', 'keeps the bundle floor aligned with the default Core Audio capture path');
 assert.match(tauriConfigText, /henryvn27\/hush\/releases\/latest\/download\/latest\.json/, 'uses the fork-owned updater endpoint');
 assert.match(cargoManifest, /repository = "https:\/\/github\.com\/henryvn27\/hush"/, 'publishes fork-owned Cargo metadata');
-assert.match(releaseWorkflow, /Meetily Improved v/, 'names GitHub releases for the public app');
-assert.match(releaseWorkflow, /asset-prefix: "meetily-improved"/, 'names release assets for the public app');
+assert.match(releaseWorkflow, /Hush v/, 'names GitHub releases for the public app');
+assert.match(releaseWorkflow, /asset-prefix: "hush"/, 'names release assets for the public app');
+assert.match(recordingPreferences, /hush-recordings/, 'uses a Hush-owned default recordings folder');
+assert.doesNotMatch(recordingPreferences, /meetily-recordings/, 'does not create new recordings under the upstream name');
 assert.match(updateManifest, /henryvn27\/hush/, 'generates fork-owned update manifest links');
 assert.doesNotMatch(`${tauriConfigText}\n${cargoManifest}\n${releaseWorkflow}\n${updateManifest}`, /Zackriya-Solutions\/meeting-minutes/, 'removes upstream release endpoints from active distribution metadata');
 
