@@ -112,7 +112,7 @@ export default function DashboardPage() {
       <section aria-label="Hush status" className="hush-activity-facts">
         <div className="hush-ledger-item">
           <span className="hush-ledger-label">Flows captured</span>
-          <strong>{meetings.length.toString().padStart(2, '0')}</strong>
+          <strong>{meetings.length.toLocaleString()}</strong>
           <span>on this Mac</span>
         </div>
         <div className="hush-ledger-item">
