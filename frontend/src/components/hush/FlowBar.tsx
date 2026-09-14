@@ -263,6 +263,11 @@ export function FlowBar({ floating = false }: { floating?: boolean }) {
     <aside
       className={floating ? 'hush-flow-bar hush-flow-bar-floating group' : 'hush-flow-bar group'}
       aria-label="Hush Flow Bar"
+      onContextMenu={(event) => {
+        event.preventDefault();
+        const trigger = event.currentTarget.querySelector('.hush-flow-menu-trigger') as HTMLButtonElement | null;
+        trigger?.click();
+      }}
       onPointerDown={(event) => {
         if (!floating || event.button !== 0) return;
         const target = event.target as HTMLElement | null;

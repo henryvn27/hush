@@ -21,6 +21,8 @@ test('native Flow Bar synchronizes backend recording state in its separate WebVi
   assert.match(flowBar, /emitToMainWithFallback\('hush-flow-bar-error'/);
   assert.match(flowBar, /if \(isRecording \|\| isBusy\) return/);
   assert.match(flowBar, /Dictation in progress; use Stop or Cancel/);
+  assert.match(flowBar, /onContextMenu/);
+  assert.match(flowBar, /hush-flow-menu-trigger/);
   assert.match(flowBar, /startDragging\(\)/);
   assert.match(flowBar, /target\?\.closest\('button'\)/);
   assert.match(flowBar, /request-recording-cancel/);
