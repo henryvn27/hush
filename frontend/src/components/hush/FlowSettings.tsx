@@ -7,7 +7,7 @@ import { Switch } from '@base-ui/react/switch';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
-import { readShortcutConfig, saveShortcutConfig, type ShortcutConfig } from './ShortcutRuntime';
+import { readPasteShortcutConfig, readShortcutConfig, savePasteShortcutConfig, saveShortcutConfig, type PasteShortcutConfig, type ShortcutConfig } from './ShortcutRuntime';
 import { readPhraseRules, writePhraseRules, type HushPhraseRule, type HushPhraseRuleKind } from '@/lib/hush-personalization';
 import { useConfig } from '@/contexts/ConfigContext';
 import { LANGUAGES } from '@/constants/languages';
@@ -117,8 +117,10 @@ export function FlowSettings() {
   const [showFlowBar, setShowFlowBar] = useState(true);
   const [insertAtCursor, setInsertAtCursor] = useState(false);
   const [shortcut, setShortcut] = useState<ShortcutConfig>(() => readShortcutConfig());
+  const [pasteShortcut, setPasteShortcut] = useState<PasteShortcutConfig>(() => readPasteShortcutConfig());
   const [isCapturingShortcut, setIsCapturingShortcut] = useState(false);
   const [isCapturingAdditionalShortcut, setIsCapturingAdditionalShortcut] = useState(false);
+  const [isCapturingPasteShortcut, setIsCapturingPasteShortcut] = useState(false);
   const [phraseRules, setPhraseRules] = useState<HushPhraseRule[]>([]);
   const [phraseKind, setPhraseKind] = useState<HushPhraseRuleKind>('dictionary');
   const [phraseTrigger, setPhraseTrigger] = useState('');
@@ -154,8 +156,16 @@ export function FlowSettings() {
       const config = (event as CustomEvent<ShortcutConfig>).detail;
       if (config) setShortcut(config);
     };
+    const handlePasteShortcutRejected = (event: Event) => {
+      const config = (event as CustomEvent<PasteShortcutConfig>).detail;
+      if (config) setPasteShortcut(config);
+    };
     window.addEventListener('hush-shortcut-rejected', handleShortcutRejected);
-    return () => window.removeEventListener('hush-shortcut-rejected', handleShortcutRejected);
+    window.addEventListener('hush-paste-shortcut-rejected', handlePasteShortcutRejected);
+    return () => {
+      window.removeEventListener('hush-shortcut-rejected', handleShortcutRejected);
+      window.removeEventListener('hush-paste-shortcut-rejected', handlePasteShortcutRejected);
+    };
   }, []);
 
   useEffect(() => {
@@ -332,6 +342,15 @@ export function FlowSettings() {
     if (captured) chooseShortcut(captured);
   };
 
+  const handlePasteShortcutCapture = (event: KeyboardEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const captured = shortcutDisplayFromKey(event);
+    if (!captured || shortcut.kind === 'global' && captured.shortcut === shortcut.shortcut) return;
+    setPasteShortcut(captured);
+    setIsCapturingPasteShortcut(false);
+    savePasteShortcutConfig(captured);
+  };
+
   const handleAdditionalShortcutCapture = (event: KeyboardEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const captured = shortcutDisplayFromKey(event);
@@ -448,6 +467,21 @@ export function FlowSettings() {
           )}
         </div>
       )}
+
+      <div className="hush-settings-flow-row">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Paste last dictation</p>
+          <p className="mt-1 text-xs text-muted-foreground">Recover the latest transcript when automatic insertion misses the focused app.</p>
+        </div>
+        <button
+          type="button"
+          className="hush-settings-shortcut-capture shrink-0 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-secondary"
+          onClick={() => setIsCapturingPasteShortcut(true)}
+          onKeyDown={handlePasteShortcutCapture}
+        >
+          {isCapturingPasteShortcut ? "Press keys…" : pasteShortcut.label}
+        </button>
+      </div>
 
       <div className="hush-settings-flow-row">
         <div>

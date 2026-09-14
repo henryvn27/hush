@@ -14,12 +14,36 @@ import {
 } from '@/lib/globe-gesture';
 
 export const HUSH_SHORTCUT_STORAGE_KEY = 'hush-flow-shortcut';
+export const HUSH_PASTE_SHORTCUT_STORAGE_KEY = 'hush-paste-last-shortcut';
 const HUSH_SHORTCUT_RUNTIME_KEY = 'hush-flow-shortcut-runtime';
 const DEFAULT_SHORTCUT: ShortcutConfig = { kind: 'globe', label: 'Globe / Fn' };
+const DEFAULT_PASTE_SHORTCUT: PasteShortcutConfig = { shortcut: 'Command+Control+V', label: '⌘ ⌃ V' };
+
+export interface PasteShortcutConfig {
+  shortcut: string;
+  label: string;
+}
 
 export type ShortcutConfig =
   | { kind: 'globe'; label: string }
   | { kind: 'global'; label: string; shortcut: string; shortcuts?: string[] };
+
+export function readPasteShortcutConfig(): PasteShortcutConfig {
+  if (typeof window === 'undefined') return DEFAULT_PASTE_SHORTCUT;
+  try {
+    const value = window.localStorage.getItem(HUSH_PASTE_SHORTCUT_STORAGE_KEY);
+    if (!value) return DEFAULT_PASTE_SHORTCUT;
+    const parsed = JSON.parse(value) as PasteShortcutConfig;
+    if (parsed.shortcut && parsed.label) return parsed;
+  } catch {
+    // Fall through to the safe default when a stale preference cannot be read.
+  }
+  return DEFAULT_PASTE_SHORTCUT;
+}
+
+function pasteShortcutBinding(config: PasteShortcutConfig): string[] {
+  return config.shortcut ? [config.shortcut] : [];
+}
 
 function shortcutBindings(config: ShortcutConfig): string[] {
   if (config.kind !== 'global') return [];
@@ -60,63 +84,84 @@ export function ShortcutRuntime() {
     if (!isTauriRuntime()) return;
 
     let activeShortcuts: string[] = [];
+    let activePasteShortcuts: string[] = [];
     let lastAppliedConfig = readShortcutConfig();
+    let lastAppliedPaste = readPasteShortcutConfig();
 
-    const applyShortcut = async (config: ShortcutConfig) => {
-      const previousShortcuts = activeShortcuts;
+    const applyShortcuts = async (config: ShortcutConfig, pasteConfig: PasteShortcutConfig) => {
+      const previousShortcuts = [...activeShortcuts, ...activePasteShortcuts];
       const previousConfig = lastAppliedConfig;
+      const previousPaste = lastAppliedPaste;
       try {
         await Promise.all(previousShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
         activeShortcuts = [];
+        activePasteShortcuts = [];
 
-        const nextShortcuts = shortcutBindings(config);
-        for (const shortcut of nextShortcuts) {
+        for (const shortcut of shortcutBindings(config)) {
           await register(shortcut, () => {
-            // The global shortcut plugin only reports the key press here. Feed
-            // it into the same activation bridge used by the Globe/Fn monitor
-            // so custom bindings behave like the built-in shortcut.
-            window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
+            window.dispatchEvent(new CustomEvent("hush-toggle-recording"));
           });
           activeShortcuts.push(shortcut);
         }
+        for (const shortcut of pasteShortcutBinding(pasteConfig)) {
+          await register(shortcut, () => {
+            window.dispatchEvent(new CustomEvent("request-paste-last"));
+          });
+          activePasteShortcuts.push(shortcut);
+        }
 
-        window.localStorage.setItem(HUSH_SHORTCUT_RUNTIME_KEY, activeShortcuts.join(',') || 'globe');
         lastAppliedConfig = config;
+        lastAppliedPaste = pasteConfig;
+        window.localStorage.setItem(HUSH_SHORTCUT_RUNTIME_KEY, activeShortcuts.join(",") || "globe");
       } catch (error) {
-        console.error('Failed to register Hush shortcut:', error);
-        await Promise.all(activeShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
+        console.error("Failed to register Hush shortcut:", error);
+        await Promise.all([...activeShortcuts, ...activePasteShortcuts].map((shortcut) => unregister(shortcut).catch(() => undefined)));
         activeShortcuts = [];
-        const previousBindings = shortcutBindings(previousConfig);
+        activePasteShortcuts = [];
         try {
-          for (const shortcut of previousBindings) {
+          for (const shortcut of shortcutBindings(previousConfig)) {
             await register(shortcut, () => {
-              window.dispatchEvent(new CustomEvent('hush-toggle-recording'));
+              window.dispatchEvent(new CustomEvent("hush-toggle-recording"));
             });
             activeShortcuts.push(shortcut);
           }
+          for (const shortcut of pasteShortcutBinding(previousPaste)) {
+            await register(shortcut, () => {
+              window.dispatchEvent(new CustomEvent("request-paste-last"));
+            });
+            activePasteShortcuts.push(shortcut);
+          }
         } catch {
           activeShortcuts = [];
+          activePasteShortcuts = [];
         }
         window.localStorage.setItem(HUSH_SHORTCUT_STORAGE_KEY, JSON.stringify(previousConfig));
-        window.dispatchEvent(new CustomEvent('hush-shortcut-rejected', { detail: previousConfig }));
-        toast.error('Shortcut is unavailable', {
-          description: 'That keybind is already in use. Choose another shortcut in Settings.',
+        window.localStorage.setItem(HUSH_PASTE_SHORTCUT_STORAGE_KEY, JSON.stringify(previousPaste));
+        window.dispatchEvent(new CustomEvent("hush-shortcut-rejected", { detail: previousConfig }));
+        window.dispatchEvent(new CustomEvent("hush-paste-shortcut-rejected", { detail: previousPaste }));
+        toast.error("Shortcut is unavailable", {
+          description: "That keybind is already in use. Choose another shortcut in Settings.",
         });
       }
     };
 
-    const config = readShortcutConfig();
-    void applyShortcut(config);
+    void applyShortcuts(lastAppliedConfig, lastAppliedPaste);
 
     const handleShortcutChange = (event: Event) => {
-      const configEvent = event as CustomEvent<ShortcutConfig>;
-      if (configEvent.detail) void applyShortcut(configEvent.detail);
+      const config = (event as CustomEvent<ShortcutConfig>).detail;
+      if (config) void applyShortcuts(config, lastAppliedPaste);
+    };
+    const handlePasteShortcutChange = (event: Event) => {
+      const pasteConfig = (event as CustomEvent<PasteShortcutConfig>).detail;
+      if (pasteConfig) void applyShortcuts(lastAppliedConfig, pasteConfig);
     };
 
-    window.addEventListener('hush-shortcut-change', handleShortcutChange);
+    window.addEventListener("hush-shortcut-change", handleShortcutChange);
+    window.addEventListener("hush-paste-shortcut-change", handlePasteShortcutChange);
     return () => {
-      window.removeEventListener('hush-shortcut-change', handleShortcutChange);
-      void Promise.all(activeShortcuts.map((shortcut) => unregister(shortcut).catch(() => undefined)));
+      window.removeEventListener("hush-shortcut-change", handleShortcutChange);
+      window.removeEventListener("hush-paste-shortcut-change", handlePasteShortcutChange);
+      void Promise.all([...activeShortcuts, ...activePasteShortcuts].map((shortcut) => unregister(shortcut).catch(() => undefined)));
     };
   }, []);
 
@@ -270,4 +315,9 @@ export function ShortcutActivationBridge({ showOnboarding }: { showOnboarding: b
 
 export function saveShortcutConfig(config: ShortcutConfig) {
   writeShortcutConfig(config);
+}
+
+export function savePasteShortcutConfig(config: PasteShortcutConfig) {
+  window.localStorage.setItem(HUSH_PASTE_SHORTCUT_STORAGE_KEY, JSON.stringify(config));
+  window.dispatchEvent(new CustomEvent("hush-paste-shortcut-change", { detail: config }));
 }
