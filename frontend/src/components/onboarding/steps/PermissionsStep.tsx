@@ -195,18 +195,16 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
     setPermissionsSkipped(true);
   };
 
-  const allPermissionsGranted =
-    permissions.microphone === 'authorized' &&
-    permissions.systemAudio === 'authorized';
+  const canFinish = permissions.microphone === 'authorized';
 
   return (
     <OnboardingContainer
-      title="Let Hush hear the meeting."
-      description="Allow microphone and system-audio access before local capture. Accessibility enables automatic insertion where you were typing."
+      title="Let Hush hear you."
+      description="Allow microphone access to dictate anywhere. System audio is optional and only needed when you also want to capture meeting playback."
       step={4}
       hideProgress={true}
-      showNavigation={allPermissionsGranted}
-      canGoNext={allPermissionsGranted}
+      showNavigation={canFinish}
+      canGoNext={canFinish}
     >
       <div className="max-w-[680px]">
         {/* Permission Rows */}
@@ -215,7 +213,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
           <PermissionRow
             icon={<MicrophoneIcon />}
             title="Microphone"
-            description="Required to capture your voice during meetings"
+            description="Required to dictate anywhere you work"
             status={permissions.microphone}
             isPending={isPending}
             onAction={handleMicrophoneAction}
@@ -225,7 +223,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
           <PermissionRow
             icon={<SpeakerWaveIcon />}
             title="System Audio"
-            description="Click Enable to grant Audio Capture permission"
+            description="Optional: capture meeting playback alongside your voice"
             status={permissions.systemAudio}
             isPending={isPending}
             onAction={handleSystemAudioAction}
@@ -254,7 +252,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
               variant={isTestingCapture ? 'destructive' : 'outline'}
               size="sm"
               onClick={() => void (isTestingCapture ? cancelCaptureTest() : handleCaptureTest())}
-              disabled={!allPermissionsGranted || isPending}
+              disabled={!canFinish || isPending}
               className="shrink-0"
             >
               {isTestingCapture ? 'Cancel test' : captureTested ? 'Test again' : 'Start test'}
@@ -280,7 +278,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
 
         {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Button onClick={handleFinish} disabled={!allPermissionsGranted || isPending} className="h-9">
+          <Button onClick={handleFinish} disabled={!canFinish || isPending} className="h-9">
             {isPending && <ArrowPathIcon className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
             {isPending ? 'Finishing setup…' : 'Finish Setup'}
           </Button>
@@ -293,9 +291,9 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
             I&apos;ll do this later
           </button>
 
-          {!allPermissionsGranted && (
+          {!canFinish && (
             <p className="basis-full text-[11px] leading-5 text-muted-foreground">
-              Recording won&apos;t work without permissions. You can grant them later in settings.
+              Dictation works with microphone access. Enable system audio later if you want Hush to capture meetings too.
             </p>
           )}
         </div>

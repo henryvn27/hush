@@ -40,7 +40,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Step 1: Welcome - Introduce Hush features
   // Step 2: Setup Overview - Database initialization + show recommended downloads
   // Step 3: Download Progress - Download Parakeet + Summary Model (auto-selected based on platform/RAM)
-  // Step 4: Permissions - Request mic + system audio (macOS only)
+  // Step 4: Permissions - Request microphone access and optional system audio (macOS only)
 
   return (
     <div className="onboarding-flow">
